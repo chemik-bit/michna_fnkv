@@ -21,12 +21,13 @@ def check_consistency():
                         "mono": Path("./data/mono"),
                         "spectrograms": Path("./data/spectrograms")}
 
-    for folder_to_check in folders_to_check:
-        if folders_to_check[folder_to_check].exists():
-            print(f"{folders_to_check[folder_to_check]} ...... {folder_to_check} folder - OK")
+    for to_check in folders_to_check.items():
+
+        if to_check[1].exists():
+            print(f"{to_check[1]} ...... {to_check[0]} folder - OK")
         else:
-            print(f"Missing {folder_to_check} folder ......... creating")
-            folders_to_check[folder_to_check].mkdir(parents=True, exist_ok=True)
+            print(f"Missing {to_check[1]} folder ......... creating")
+            to_check[1].mkdir(parents=True, exist_ok=True)
             consistency = False
 
     # check db file
