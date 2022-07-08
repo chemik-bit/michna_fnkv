@@ -1,20 +1,20 @@
 """
-Conversion sound file to spectrogram
+Module with various data preprocessing functions.
 """
 from pathlib import Path
-from timeit import default_timer as timer
+from pydub import AudioSegment
 import matplotlib.pyplot as plt
 from scipy import signal
 from scipy.io import wavfile
 import numpy as np
 
 
-def to_spectrogram(source_path, destination_path):
+def to_spectrogram(source_path: Path, destination_path: Path):
     """
     Converts sound file (sorce_path) to its spectrogram and save it to destination_path folder.
     Filename is the same as source sound file (but with .png extension).
-    :param source_path: path to sound file
-    :param destination_path: path to folder where the spectrogram is saved.
+    :param source_path: path to sound file (pathlib)
+    :param destination_path: path to folder where the spectrogram is saved. (pathlib)
     :return: None
     """
     sample_rate, samples = wavfile.read(source_path)
@@ -30,11 +30,13 @@ def to_spectrogram(source_path, destination_path):
     plt.close("all")
 
 
-if __name__ == "__main__":
-    SOURCE_PATH = Path("../data/mono")
-    DESTINATION_PATH = Path("../data/spectrograms")
-    for sound_file in SOURCE_PATH.iterdir():
-        start = timer()
-        to_spectrogram(sound_file, DESTINATION_PATH)
-        end = timer()
-        print(f"{sound_file.name} conversion: {end-start:.2f} s")
+def mono_wav_convert(source_path: Path, destination_path: Path):
+    """
+    Converts stereo wav sound file to mono (single channel) wav file.
+    :param source_path: path to stereo wav file
+    :param destination_path: path to save converted mono wav file
+    :return: None
+    """
+    sound = AudioSegment.from_wav(source_path)
+    sound = sound.set_channels(1)
+    sound.export(destination_path.joinpath(source_path.name), format="wav")
