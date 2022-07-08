@@ -16,54 +16,32 @@ def check_consistency():
     :return: None
     """
     consistency = True
-    # check data folder
-    data_folder_path = Path("./data")
-    if data_folder_path.exists():
-        print(f"{data_folder_path.resolve()} .......... data folder - OK")
-    else:
-        print("Missing data folder.. creating")
-        data_folder_path.mkdir(parents=True, exist_ok=True)
-        consistency = False
+    folders_to_check = {"data": Path("./data"),
+                        "sound_files": Path("./data/sound_files"),
+                        "mono": Path("./data/mono"),
+                        "spectrograms": Path("./data/spectrograms")}
 
-    # check soundfiles
-    sound_files_folder = Path("./data/sound_files")
-    if sound_files_folder.exists():
-        print(f"{sound_files_folder.resolve()} .......... sound files folder - OK")
-        if not any(sound_files_folder.iterdir()):
-            print(f"{sound_files_folder.resolve()} is empty")
-            consistency = False
+    for folder_to_check in folders_to_check:
+        if folders_to_check[folder_to_check].exists():
+            print(f"{folders_to_check[folder_to_check]} ...... {folder_to_check} folder - OK")
         else:
-            print("Files in sound_files .......... OK")
-    else:
-        print("Missing sound_files folder in data folder.. creating")
-        sound_files_folder.mkdir(parents=True, exist_ok=True)
-
-    # check mono folder
-    mono_folder_path = Path("./data/mono")
-    if mono_folder_path.exists():
-        if mono_folder_path.exists():
-            print(f"{mono_folder_path.resolve()} .......... mono folder - OK")
-        else:
-            print("Missing mono folder.. creating")
-            mono_folder_path.mkdir(parents=True, exist_ok=True)
-            consistency = False
-
-    # check spectrograms folder
-    spectrograms_folder_path = Path("./data/spectrograms")
-    if spectrograms_folder_path.exists():
-        if spectrograms_folder_path.exists():
-            print(f"{spectrograms_folder_path.resolve()} .......... spectrogram folder - OK")
-        else:
-            print("Missing spectrogram folder.. creating")
-            spectrograms_folder_path.mkdir(parents=True, exist_ok=True)
+            print(f"Missing {folder_to_check} folder ......... creating")
+            folders_to_check[folder_to_check].mkdir(parents=True, exist_ok=True)
             consistency = False
 
     # check db file
-    if data_folder_path.joinpath("database.db").exists():
+    if folders_to_check["data"].joinpath("database.db").exists():
         print("Database (database.db) .......... OK")
     else:
         print("Database missing in data folder.. ")
         consistency = False
+
+    # check if sound_files folder is empty
+    if not any(folders_to_check["sound_files"].iterdir()):
+        print("{} folder is empty".format(folders_to_check["sound_files"].resolve()))
+        consistency = False
+    else:
+        print("Files in sound_files .......... OK")
 
     if consistency:
         print("Project structure .......... OK")
