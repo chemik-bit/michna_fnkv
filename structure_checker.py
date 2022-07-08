@@ -6,7 +6,7 @@ from pathlib import Path
 
 def check_consistency():
     """
-    Fast checker of project structure. Expected structure:
+    Fast checker of project directory structure. Expected structure:
     ./data (data folder)
     ./data/sound_files (folder with sound files)
     ./data/mono (folder with mono sound files)
@@ -37,9 +37,9 @@ def check_consistency():
         print("Database missing in data folder.. ")
         consistency = False
 
-    # check if sound_files folder is empty
+    # check sound_files folder is empty
     if not any(folders_to_check["sound_files"].iterdir()):
-        print("{} folder is empty".format(folders_to_check["sound_files"].resolve()))
+        print(f'{folders_to_check["sound_files"].resolve()} folder is empty')
         consistency = False
     else:
         print("Files in sound_files .......... OK")
