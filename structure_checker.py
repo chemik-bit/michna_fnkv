@@ -12,7 +12,7 @@ def check_consistency():
     ./data/mono (folder with mono sound files)
     ./data/spectrograms (folder with spectrograms)
     ./data/database.db (database with patients information)
-
+    (presence of files in ./data/sound_files is also checked)
     :return: None
     """
     consistency = True
