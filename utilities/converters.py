@@ -22,7 +22,7 @@ def to_spectrogram(source_path: Path, destination_path: Path):
     frequencies, times, spectrogram = signal.spectrogram(samples, fs=sample_rate,
                                                          scaling="spectrum", nfft=None,
                                                          mode="psd", noverlap=128,
-                                                         window=np.hamming(256))
+                                                         window=np.hamming(32768))
     plt.pcolormesh(times, frequencies, 10 * np.log10(spectrogram), cmap="viridis")
     plt.axis("off")
     plt.savefig(destination_path.joinpath(source_path.stem + ".png"), dpi=300, format="png",
