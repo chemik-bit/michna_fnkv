@@ -11,6 +11,7 @@ def check_consistency():
     ./data/sound_files (folder with sound files)
     ./data/mono (folder with mono sound files)
     ./data/spectrograms (folder with spectrograms)
+    ./data/voiced (folder fo Voiced database files)
     ./data/database.db (database with patients information)
     (presence of files in ./data/sound_files is also checked)
     :return: None
@@ -19,6 +20,7 @@ def check_consistency():
     folders_to_check = {"data": Path("./data"),
                         "sound_files": Path("./data/sound_files"),
                         "mono": Path("./data/mono"),
+                        "voiced": Path("./data/voiced"),
                         "spectrograms": Path("./data/spectrograms")}
 
     for to_check in folders_to_check.items():

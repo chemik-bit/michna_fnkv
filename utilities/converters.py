@@ -9,7 +9,7 @@ from scipy.io import wavfile
 import numpy as np
 
 
-def to_spectrogram(source_path: Path, destination_path: Path):
+def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length: int):
     """
     Converts sound file (sorce_path) to its spectrogram and save it to destination_path folder.
     Filename is the same as source sound file (but with .png extension).
@@ -18,11 +18,10 @@ def to_spectrogram(source_path: Path, destination_path: Path):
     :return: None
     """
     sample_rate, samples = wavfile.read(source_path)
-
     frequencies, times, spectrogram = signal.spectrogram(samples, fs=sample_rate,
                                                          scaling="spectrum", nfft=None,
                                                          mode="psd", noverlap=128,
-                                                         window=np.hamming(32768))
+                                                         window=np.hamming(fft_window_length))
     plt.pcolormesh(times, frequencies, 10 * np.log10(spectrogram), cmap="viridis")
     plt.axis("off")
     plt.savefig(destination_path.joinpath(source_path.stem + ".png"), dpi=300, format="png",
@@ -30,7 +29,7 @@ def to_spectrogram(source_path: Path, destination_path: Path):
     plt.close("all")
 
 
-def mono_wav_convert(source_path: Path, destination_path: Path):
+def stereo2mono(source_path: Path, destination_path: Path):
     """
     Converts stereo wav sound file to mono (single channel) wav file.
     :param source_path: path to stereo wav file
@@ -40,3 +39,9 @@ def mono_wav_convert(source_path: Path, destination_path: Path):
     sound = AudioSegment.from_wav(source_path)
     sound = sound.set_channels(1)
     sound.export(destination_path.joinpath(source_path.name), format="wav")
+
+
+def txt2wav(source_path: Path, destination_path: Path):
+    txt_data = np.loadtxt(source_path)
+    print(txt_data.shape)
+    wavfile.write(filename=destination_path.joinpath(source_path.stem + ".wav"), rate=8000, data=txt_data)
