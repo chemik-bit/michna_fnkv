@@ -37,7 +37,7 @@ def train_color_encoder(X1, X2, y):
     layer4 = MaxPooling2D((2, 2), padding='same')(layer3)
     layer5 = Flatten()(layer4)
     layer6 = Dense(16, activation="tanh")(layer5)
-    layer7 = Dense(8, activation="tanh")(layer6)
+    layer7 = Dropout(0.5)(layer6)
     layer8 = Dense(2, activation="tanh")(layer7)
     # embeddings = Dense(16, activation=None)(layer5)
     # norm_embeddings = tf.nn.l2_normalize(embeddings, axis=-1)

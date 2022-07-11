@@ -13,6 +13,7 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
     """
     Converts sound file (sorce_path) to its spectrogram and save it to destination_path folder.
     Filename is the same as source sound file (but with .png extension).
+    :param fft_window_length: lenght of FFT window (Hamming)
     :param source_path: path to sound file (pathlib)
     :param destination_path: path to folder where the spectrogram is saved. (pathlib)
     :return: None
