@@ -8,35 +8,38 @@ from timeit import default_timer as timer
 from utilities.converters import stereo2mono, wav2spectrogram, txt2wav
 
 
-
-
-# SOURCE_PATH = Path("../data/voiced")
-# DESTINATION_PATH = Path("../data/voiced/spectrograms")
-# for sound_file in SOURCE_PATH.glob("voice???.txt"):
-#
-#     txt2wav(sound_file, SOURCE_PATH)
-#
-#     start = timer()
-#     wav2spectrogram(sound_file, DESTINATION_PATH, 256)
-#     end = timer()
-#     print(f"{sound_file.name} conversion: {end-start:.2f} s")
-
-#
+########################################################################
+#                           TXT to WAV                                 #
+########################################################################
 SOURCE_PATH = Path("../data/voiced")
-DESTINATION_PATH = Path("../data/voiced/mono")
-# convert stereo soundfiles to mono
-for sound_file in SOURCE_PATH.glob("*.wav"):
-    print(sound_file.resolve())
-    stereo2mono(sound_file, DESTINATION_PATH)
-# # #
+DESTINATION_PATH = Path("../data/voiced/spectrograms")
+for sound_file in SOURCE_PATH.glob("voice???.txt"):
+    start = timer()
+
+    txt2wav(sound_file, SOURCE_PATH)
+
+    end = timer()
+    print(f"{sound_file.name} conversion: {end-start:.2f} s")
+
+########################################################################
+#                        WAV to MONO WAV                               #
+########################################################################
+
 # SOURCE_PATH = Path("../data/voiced")
-# DESTINATION_PATH = Path("../data/voiced/spectrograms")
+# DESTINATION_PATH = Path("../data/voiced/mono")
+# # convert stereo soundfiles to mono
 # for sound_file in SOURCE_PATH.glob("*.wav"):
-#     start = timer()
-#     print(f"converting {sound_file.name}")
-#     wav2spectrogram(sound_file, DESTINATION_PATH, 256)
-#     end = timer()
-#     print(f"{sound_file.name} conversion: {end-start:.2f} s")
+#     print(sound_file.resolve())
+#     stereo2mono(sound_file, DESTINATION_PATH)
 
-#
-
+########################################################################
+#                        WAV to SPETROGRAM                             #
+########################################################################
+SOURCE_PATH = Path("../data/voiced")
+DESTINATION_PATH = Path("../data/voiced/spectrograms")
+for sound_file in SOURCE_PATH.glob("*.wav"):
+    start = timer()
+    print(f"converting {sound_file.name}")
+    wav2spectrogram(sound_file, DESTINATION_PATH, 256)
+    end = timer()
+    print(f"{sound_file.name} conversion: {end-start:.2f} s")
