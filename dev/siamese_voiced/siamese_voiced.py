@@ -20,105 +20,119 @@ the class segmentation of the training inputs.
 """
 ## Setup
 """
-
+from pathlib import Path
 import random
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
+import pickle
 
 """
 ## Hyperparameters
 """
 
-epochs = 10
+epochs = 1000
 batch_size = 16
 margin = 1  # Margin for constrastive loss.
 
 """
 ## Load the MNIST dataset
 """
-(x_train_val, y_train_val), (x_test, y_test) = keras.datasets.mnist.load_data()
-
-# Change the data type to a floating point format
-x_train_val = x_train_val.astype("float32")
-x_test = x_test.astype("float32")
+#(x_train_val, y_train_val), (x_test, y_test) = keras.datasets.mnist.load_data()
 
 
-"""
-## Define training and validation sets
-"""
-
-# Keep 50% of train_val  in validation set
-x_train, x_val = x_train_val[:30000], x_train_val[30000:]
-y_train, y_val = y_train_val[:30000], y_train_val[30000:]
-del x_train_val, y_train_val
-
-
-"""
-## Create pairs of images
-We will train the model to differentiate between digits of different classes. For
-example, digit `0` needs to be differentiated from the rest of the
-digits (`1` through `9`), digit `1` - from `0` and `2` through `9`, and so on.
-To carry this out, we will select N random images from class A (for example,
-for digit `0`) and pair them with N random images from another class B
-(for example, for digit `1`). Then, we can repeat this process for all classes
-of digits (until digit `9`). Once we have paired digit `0` with other digits,
-we can repeat this process for the remaining classes for the rest of the digits
-(from `1` until `9`).
-"""
-
-
-def make_pairs(x, y):
-    """Creates a tuple containing image pairs with corresponding label.
-    Arguments:
-        x: List containing images, each index in this list corresponds to one image.
-        y: List containing labels, each label with datatype of `int`.
-    Returns:
-        Tuple containing two numpy arrays as (pairs_of_samples, labels),
-        where pairs_of_samples' shape is (2len(x), 2,n_features_dims) and
-        labels are a binary array of shape (2len(x)).
-    """
-
-    num_classes = max(y) + 1
-    digit_indices = [np.where(y == i)[0] for i in range(num_classes)]
-
-    pairs = []
-    labels = []
-
-    for idx1 in range(len(x)):
-        # add a matching example
-        x1 = x[idx1]
-        label1 = y[idx1]
-        idx2 = random.choice(digit_indices[label1])
-        x2 = x[idx2]
-
-        pairs += [[x1, x2]]
-        labels += [1]
-
-        # add a non-matching example
-        label2 = random.randint(0, num_classes - 1)
-        while label2 == label1:
-            label2 = random.randint(0, num_classes - 1)
-
-        idx2 = random.choice(digit_indices[label2])
-        x2 = x[idx2]
-
-        pairs += [[x1, x2]]
-        labels += [0]
-
-    return np.array(pairs), np.array(labels).astype("float32")
-
-
-# make train pairs
-pairs_train, labels_train = make_pairs(x_train, y_train)
-
-# make validation pairs
-pairs_val, labels_val = make_pairs(x_val, y_val)
-
-# make test pairs
-pairs_test, labels_test = make_pairs(x_test, y_test)
+# x_train_val = np.asarray(x_train_val)
+# y_train_val = np.asarray(y_train_val)
+# x_test = np.asarray(x_test)
+# y_test = np.asarray(y_test)
+# # Change the data type to a floating point format
+# x_train_val = x_train_val.astype("float32")
+# x_test = x_test.astype("float32")
+#
+#
+# """
+# ## Define training and validation sets
+# """
+#
+# # Keep 50% of train_val  in validation set
+# x_train, x_val = x_train_val[:30000], x_train_val[30000:]
+# y_train, y_val = y_train_val[:30000], y_train_val[30000:]
+# del x_train_val, y_train_val
+#
+#
+# """
+# ## Create pairs of images
+# We will train the model to differentiate between digits of different classes. For
+# example, digit `0` needs to be differentiated from the rest of the
+# digits (`1` through `9`), digit `1` - from `0` and `2` through `9`, and so on.
+# To carry this out, we will select N random images from class A (for example,
+# for digit `0`) and pair them with N random images from another class B
+# (for example, for digit `1`). Then, we can repeat this process for all classes
+# of digits (until digit `9`). Once we have paired digit `0` with other digits,
+# we can repeat this process for the remaining classes for the rest of the digits
+# (from `1` until `9`).
+# """
+#
+#
+# def make_pairs(x, y):
+#     """Creates a tuple containing image pairs with corresponding label.
+#     Arguments:
+#         x: List containing images, each index in this list corresponds to one image.
+#         y: List containing labels, each label with datatype of `int`.
+#     Returns:
+#         Tuple containing two numpy arrays as (pairs_of_samples, labels),
+#         where pairs_of_samples' shape is (2len(x), 2,n_features_dims) and
+#         labels are a binary array of shape (2len(x)).
+#     """
+#
+#     num_classes = max(y) + 1
+#     digit_indices = [np.where(y == i)[0] for i in range(num_classes)]
+#     print("digit_indices", digit_indices)
+#     pairs = []
+#     labels = []
+#
+#     for idx1 in range(len(x)):
+#         # add a matching example
+#         x1 = x[idx1]
+#         label1 = y[idx1]
+#         idx2 = random.choice(digit_indices[label1])
+#         x2 = x[idx2]
+#
+#         pairs += [[x1, x2]]
+#         labels += [1]
+#
+#         # add a non-matching example
+#         label2 = random.randint(0, num_classes - 1)
+#         while label2 == label1:
+#             label2 = random.randint(0, num_classes - 1)
+#
+#         idx2 = random.choice(digit_indices[label2])
+#         x2 = x[idx2]
+#
+#         pairs += [[x1, x2]]
+#         labels += [0]
+#
+#     return np.array(pairs), np.array(labels).astype("float32")
+pickled_pairs_path = Path("../../data/voiced_pairs.pickled")
+with open(pickled_pairs_path, "rb") as f:
+    pairs = pickle.load(f)
+    labels = pickle.load(f)
+pairs_train = np.asarray(pairs[:2000])
+labels_train = np.asarray(labels[:2000], dtype=np.float32)
+pairs_val = np.asarray(pairs[2000:3000])
+labels_val = np.asarray(labels[2000:3000], dtype=np.float32)
+pairs_test = np.asarray(pairs[3000:])
+labels_test = np.asarray(labels[3000:], dtype=np.float32)
+# # make train pairs
+# pairs_train, labels_train = make_pairs(x_train, y_train)
+# print(pairs_train[:3], labels_train[:3])
+# # make validation pairs
+# pairs_val, labels_val = make_pairs(x_val, y_val)
+#
+# # make test pairs
+# pairs_test, labels_test = make_pairs(x_test, y_test)
 
 """
 We get:
@@ -259,21 +273,23 @@ def euclidean_distance(vects):
     return tf.math.sqrt(tf.math.maximum(sum_square, tf.keras.backend.epsilon()))
 
 
-input = layers.Input((28, 28, 1))
+input = layers.Input((28, 28, 3))
 x = tf.keras.layers.BatchNormalization()(input)
 x = layers.Conv2D(4, (5, 5), activation="tanh")(x)
 x = layers.AveragePooling2D(pool_size=(2, 2))(x)
 x = layers.Conv2D(16, (5, 5), activation="tanh")(x)
 x = layers.AveragePooling2D(pool_size=(2, 2))(x)
+# x = layers.Conv2D(32, (3, 3), activation="tanh")(x)
+# x = layers.AveragePooling2D(pool_size=(2, 2))(x)
 x = layers.Flatten()(x)
-
 x = tf.keras.layers.BatchNormalization()(x)
-x = layers.Dense(10, activation="tanh")(x)
+# x = layers.Dense(10, activation="tanh")(x)
+x = layers.Dense(16, activation="tanh")(x)
 embedding_network = keras.Model(input, x)
 
 
-input_1 = layers.Input((28, 28, 1))
-input_2 = layers.Input((28, 28, 1))
+input_1 = layers.Input((28, 28, 3))
+input_2 = layers.Input((28, 28, 3))
 
 # As mentioned above, Siamese Network share weights between
 # tower networks (sister networks). To allow this, we will use
