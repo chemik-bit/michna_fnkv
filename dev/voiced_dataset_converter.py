@@ -21,6 +21,7 @@ def make_pairs(image_paths: Path, image_labels: list, desired_image_size: tuple)
     # load images and resize them
     for idx, image_path in enumerate(image_paths):
         # read image
+        print(image_path)
         image = cv2.imread(str(image_path.resolve()))
         # resize image according to desired_image_size
         image = cv2.resize(image, desired_image_size, interpolation=cv2.INTER_AREA)
@@ -47,26 +48,23 @@ def make_pairs(image_paths: Path, image_labels: list, desired_image_size: tuple)
             image_pairs.append([image, images[selection_idx]])
             label_pairs.append(0)
 
-    path_to_save = Path("../data/voiced_pairs.pickled")
+    path_to_save = Path("../data/voiced_pairs_test.pickled")
     with open(path_to_save, "wb") as f:
         pickle.dump(image_pairs, f)
         pickle.dump(label_pairs, f)
 
-pickled_voiced_path = Path("../data/voiced.pickled")
+pickled_voiced_path = Path("../data/voiced_test.pickled")
 with open(pickled_voiced_path, "rb") as f:
     image_paths = pickle.load(f)
     image_labels = pickle.load(f)
 
 
-make_pairs(image_paths, image_labels, (28, 28))
+make_pairs(image_paths, image_labels, (50, 50))
 
-pickled_pairs_path = Path("../data/voiced_pairs.pickled")
+pickled_pairs_path = Path("../data/voiced_pairs_test.pickled")
 with open(pickled_pairs_path, "rb") as f:
     pairs = pickle.load(f)
     labels = pickle.load(f)
 
-# for pair_image in pairs:
-#     cv2.imshow("1", np.asarray(pair_image[0], dtype=np.uint8))
-#     cv2.imshow("2", np.asarray(pair_image[1], dtype=np.uint8))
-#     cv2.waitKey(1000)
+
 print(len(labels))

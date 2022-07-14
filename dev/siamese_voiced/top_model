@@ -1,0 +1,28 @@
+input = layers.Input((input_size, input_size, 3))
+x = tf.keras.layers.BatchNormalization()(input)
+x = layers.Conv2D(8, (5, 5), activation="tanh")(x) # 4
+x = layers.AveragePooling2D(pool_size=(2, 2))(x)
+x = layers.Conv2D(16, (5, 5), activation="tanh")(x)
+x = layers.AveragePooling2D(pool_size=(2, 2))(x)
+# x = layers.Conv2D(32, (3, 3), activation="tanh")(x)
+# x = layers.AveragePooling2D(pool_size=(2, 2))(x)
+x = layers.Flatten()(x)
+x = tf.keras.layers.BatchNormalization()(x)
+# x = layers.Dense(10, activation="tanh")(x)
+x = layers.Dense(16, activation="tanh")(x)
+embedding_network = keras.Model(input, x)
+
+
+input_1 = layers.Input((input_size, input_size, 3))
+input_2 = layers.Input((input_size, input_size, 3))
+
+# As mentioned above, Siamese Network share weights between
+# tower networks (sister networks). To allow this, we will use
+# same embedding network for both tower networks.
+tower_1 = embedding_network(input_1)
+tower_2 = embedding_network(input_2)
+
+merge_layer = layers.Lambda(euclidean_distance)([tower_1, tower_2])
+normal_layer = tf.keras.layers.BatchNormalization()(merge_layer)
+output_layer = layers.Dense(1, activation="sigmoid")(normal_layer)
+siamese = keras.Model(inputs=[input_1, input_2], outputs=output_layer)

@@ -33,7 +33,7 @@ import pickle
 ## Hyperparameters
 """
 
-epochs = 1000
+epochs = 200
 batch_size = 16
 margin = 1  # Margin for constrastive loss.
 
@@ -115,16 +115,28 @@ margin = 1  # Margin for constrastive loss.
 #         labels += [0]
 #
 #     return np.array(pairs), np.array(labels).astype("float32")
-pickled_pairs_path = Path("../../data/voiced_pairs.pickled")
+training_set_size = 2500 # 2000
+validation_set_size = 500 # 1000
+pickled_pairs_path = Path("../../data/voiced_pairs_train.pickled")
 with open(pickled_pairs_path, "rb") as f:
     pairs = pickle.load(f)
     labels = pickle.load(f)
-pairs_train = np.asarray(pairs[:2000])
-labels_train = np.asarray(labels[:2000], dtype=np.float32)
-pairs_val = np.asarray(pairs[2000:3000])
-labels_val = np.asarray(labels[2000:3000], dtype=np.float32)
-pairs_test = np.asarray(pairs[3000:])
-labels_test = np.asarray(labels[3000:], dtype=np.float32)
+print("train labels", len(labels))
+pairs_train = np.asarray(pairs[:training_set_size])
+labels_train = np.asarray(labels[:training_set_size], dtype=np.float32)
+pairs_val = np.asarray(pairs[training_set_size:])
+labels_val = np.asarray(labels[training_set_size:], dtype=np.float32)
+
+pickled_pairs_path = Path("../../data/voiced_pairs_test.pickled")
+with open(pickled_pairs_path, "rb") as f1:
+    pairs_test= pickle.load(f1)
+    labels_test = pickle.load(f1)
+labels_test = np.asarray(labels_test)
+labels_test = np.asarray(labels_test, dtype=np.float32)
+pairs_test = np.asarray(pairs_test)
+print("test labels: ", len(labels_test))
+print(pairs_train.shape)
+input_size = pairs_train.shape[2]
 # # make train pairs
 # pairs_train, labels_train = make_pairs(x_train, y_train)
 # print(pairs_train[:3], labels_train[:3])
@@ -235,19 +247,19 @@ def visualize(pairs, labels, to_show=6, num_col=3, predictions=None, test=False)
 Inspect training pairs
 """
 
-visualize(pairs_train[:-1], labels_train[:-1], to_show=4, num_col=4)
+#visualize(pairs_train[:-1], labels_train[:-1], to_show=4, num_col=4)
 
 """
 Inspect validation pairs
 """
 
-visualize(pairs_val[:-1], labels_val[:-1], to_show=4, num_col=4)
+#visualize(pairs_val[:-1], labels_val[:-1], to_show=4, num_col=4)
 
 """
 Inspect test pairs
 """
 
-visualize(pairs_test[:-1], labels_test[:-1], to_show=4, num_col=4)
+#visualize(pairs_test[:-1], labels_test[:-1], to_show=4, num_col=4)
 
 """
 ## Define the model
@@ -273,23 +285,46 @@ def euclidean_distance(vects):
     return tf.math.sqrt(tf.math.maximum(sum_square, tf.keras.backend.epsilon()))
 
 
-input = layers.Input((28, 28, 3))
+input = layers.Input((input_size, input_size, 3))
 x = tf.keras.layers.BatchNormalization()(input)
-x = layers.Conv2D(4, (5, 5), activation="tanh")(x)
-x = layers.AveragePooling2D(pool_size=(2, 2))(x)
-x = layers.Conv2D(16, (5, 5), activation="tanh")(x)
-x = layers.AveragePooling2D(pool_size=(2, 2))(x)
-# x = layers.Conv2D(32, (3, 3), activation="tanh")(x)
-# x = layers.AveragePooling2D(pool_size=(2, 2))(x)
+x = layers.Conv2D(64, (3, 3), activation="relu")(x) # 8
+x = layers.Conv2D(64, (3, 3), activation="relu")(x) # 8
+x = tf.keras.layers.BatchNormalization()(x)
+x = layers.MaxPooling2D(pool_size=(2, 2))(x)
+x = layers.Dropout(0.05)(x)
+
+x = layers.Conv2D(128, (3, 3), activation="relu")(x)
+x = layers.Conv2D(128, (3, 3), activation="relu")(x)
+x = tf.keras.layers.BatchNormalization()(x)
+x = layers.MaxPooling2D(pool_size=(2, 2))(x)
+x = layers.Dropout(0.05)(x)
+
+
+x = layers.Conv2D(256, (3, 3), activation="relu")(x)
+x = layers.Conv2D(256, (3, 3), activation="relu")(x)
+x = layers.Conv2D(256, (3, 3), activation="relu")(x)
+x = tf.keras.layers.BatchNormalization()(x)
+x = layers.MaxPooling2D(pool_size=(2, 2))(x)
+x = layers.Dropout(0.05)(x)
+
+# x = layers.Conv2D(512, (3, 3), activation="relu")(x)
+# x = layers.Conv2D(512, (3, 3), activation="relu")(x)
+# x = layers.Conv2D(512, (3, 3), activation="relu")(x)
+# x = tf.keras.layers.BatchNormalization()(x)
+# x = layers.MaxPooling2D(pool_size=(2, 2))(x)
+# x = layers.Dropout(0.1)(x)
+
 x = layers.Flatten()(x)
+x = layers.Dense(4096, activation="tanh")(x)
 x = tf.keras.layers.BatchNormalization()(x)
 # x = layers.Dense(10, activation="tanh")(x)
-x = layers.Dense(16, activation="tanh")(x)
+x = layers.Dense(4096, activation="tanh")(x)
+x = layers.Dense(4096, activation="tanh")(x)
 embedding_network = keras.Model(input, x)
 
 
-input_1 = layers.Input((28, 28, 3))
-input_2 = layers.Input((28, 28, 3))
+input_1 = layers.Input((input_size, input_size, 3))
+input_2 = layers.Input((input_size, input_size, 3))
 
 # As mentioned above, Siamese Network share weights between
 # tower networks (sister networks). To allow this, we will use
@@ -342,7 +377,8 @@ def loss(margin=1):
 ## Compile the model with the contrastive loss
 """
 
-siamese.compile(loss=loss(margin=margin), optimizer="RMSprop", metrics=["accuracy"])
+# siamese.compile(loss=loss(margin=margin), optimizer="RMSprop", metrics=["accuracy"])
+siamese.compile(loss=loss(margin=margin), optimizer="Adam", metrics=["accuracy"])
 siamese.summary()
 
 
