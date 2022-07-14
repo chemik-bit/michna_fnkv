@@ -48,12 +48,12 @@ def make_pairs(image_paths: Path, image_labels: list, desired_image_size: tuple)
             image_pairs.append([image, images[selection_idx]])
             label_pairs.append(0)
 
-    path_to_save = Path("../data/voiced_pairs_test.pickled")
+    path_to_save = Path("../data/voiced_pairs_train.pickled")
     with open(path_to_save, "wb") as f:
         pickle.dump(image_pairs, f)
         pickle.dump(label_pairs, f)
 
-pickled_voiced_path = Path("../data/voiced_test.pickled")
+pickled_voiced_path = Path("../data/voiced_train.pickled")
 with open(pickled_voiced_path, "rb") as f:
     image_paths = pickle.load(f)
     image_labels = pickle.load(f)
@@ -61,7 +61,7 @@ with open(pickled_voiced_path, "rb") as f:
 
 make_pairs(image_paths, image_labels, (50, 50))
 
-pickled_pairs_path = Path("../data/voiced_pairs_test.pickled")
+pickled_pairs_path = Path("../data/voiced_pairs_train.pickled")
 with open(pickled_pairs_path, "rb") as f:
     pairs = pickle.load(f)
     labels = pickle.load(f)

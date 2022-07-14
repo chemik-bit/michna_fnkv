@@ -115,7 +115,7 @@ margin = 1  # Margin for constrastive loss.
 #         labels += [0]
 #
 #     return np.array(pairs), np.array(labels).astype("float32")
-training_set_size = 2500 # 2000
+training_set_size = 3000 # 2000
 validation_set_size = 500 # 1000
 pickled_pairs_path = Path("../../data/voiced_pairs_train.pickled")
 with open(pickled_pairs_path, "rb") as f:
@@ -287,25 +287,25 @@ def euclidean_distance(vects):
 
 input = layers.Input((input_size, input_size, 3))
 x = tf.keras.layers.BatchNormalization()(input)
-x = layers.Conv2D(64, (3, 3), activation="relu")(x) # 8
-x = layers.Conv2D(64, (3, 3), activation="relu")(x) # 8
+x = layers.Conv2D(64, (5, 5), activation="tanh")(x) # 8
+x = layers.Conv2D(64, (5, 5), activation="tanh")(x) # 8
 x = tf.keras.layers.BatchNormalization()(x)
 x = layers.MaxPooling2D(pool_size=(2, 2))(x)
-x = layers.Dropout(0.05)(x)
+x = layers.Dropout(0.01)(x)
 
-x = layers.Conv2D(128, (3, 3), activation="relu")(x)
-x = layers.Conv2D(128, (3, 3), activation="relu")(x)
+x = layers.Conv2D(64, (3, 3), activation="tanh")(x)
+x = layers.Conv2D(128, (3, 3), activation="tanh")(x)
 x = tf.keras.layers.BatchNormalization()(x)
 x = layers.MaxPooling2D(pool_size=(2, 2))(x)
-x = layers.Dropout(0.05)(x)
+x = layers.Dropout(0.01)(x)
 
 
-x = layers.Conv2D(256, (3, 3), activation="relu")(x)
-x = layers.Conv2D(256, (3, 3), activation="relu")(x)
-x = layers.Conv2D(256, (3, 3), activation="relu")(x)
+x = layers.Conv2D(128, (3, 3), activation="tanh")(x)
+# x = layers.Conv2D(256, (3, 3), activation="tanh")(x)
+# x = layers.Conv2D(256, (3, 3), activation="tanh")(x)
 x = tf.keras.layers.BatchNormalization()(x)
 x = layers.MaxPooling2D(pool_size=(2, 2))(x)
-x = layers.Dropout(0.05)(x)
+x = layers.Dropout(0.01)(x)
 
 # x = layers.Conv2D(512, (3, 3), activation="relu")(x)
 # x = layers.Conv2D(512, (3, 3), activation="relu")(x)
@@ -318,7 +318,7 @@ x = layers.Flatten()(x)
 x = layers.Dense(4096, activation="tanh")(x)
 x = tf.keras.layers.BatchNormalization()(x)
 # x = layers.Dense(10, activation="tanh")(x)
-x = layers.Dense(4096, activation="tanh")(x)
+#x = layers.Dense(4096, activation="tanh")(x)
 x = layers.Dense(4096, activation="tanh")(x)
 embedding_network = keras.Model(input, x)
 
