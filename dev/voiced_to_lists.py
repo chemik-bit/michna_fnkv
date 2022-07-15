@@ -16,10 +16,10 @@ for description_file in voiced_path.glob("*.hea"):
     with open(description_file, "r") as f:
         data = f.readlines()
         # append to target the diagnosis corresponding to wav file (healthy/nonhealthy)
-        if "healthy" in data[-1]:
-            voiced_target.append(1) # 1 represents healthy subject
+        if "nonhealthy" in data[-1]:
+            voiced_target.append(0) # 1 represents healthy subject
         else:
-            voiced_target.append(0) # 0 represents nonhealthy subject
+            voiced_target.append(1) # 0 represents nonhealthy subject
 
 # check print
 print("test ", len(voiced_target[-(test_sample_size + validation_sample_size):-validation_sample_size]))
