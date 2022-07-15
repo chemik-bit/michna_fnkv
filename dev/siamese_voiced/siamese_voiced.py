@@ -33,10 +33,11 @@ import pickle
 ## Hyperparameters
 """
 
-epochs = 200
-batch_size = 64
+epochs = 100
+batch_size = 8
 margin = 1  # Margin for constrastive loss.
-
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 """
 ## Load the MNIST dataset
 """
@@ -282,38 +283,35 @@ def euclidean_distance(vects):
 
 input = layers.Input((input_size, input_size, 3))
 x = tf.keras.layers.BatchNormalization()(input)
-x = layers.Conv2D(16, (3, 3), activation="relu")(x) # 8
-
-x = tf.keras.layers.BatchNormalization()(x)
+x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x) # 8
+x = layers.Conv2D(64, (3, 3), activation="relu", padding="same", strides=2)(x)
 x = layers.MaxPooling2D(pool_size=(2, 2))(x)
 
 
-x = layers.Conv2D(32, (3, 3), activation="relu")(x)
-x = tf.keras.layers.BatchNormalization()(x)
-x = layers.MaxPooling2D(pool_size=(2, 2))(x)
+x = layers.Conv2D(128, (3, 3), activation="relu", padding="same")(x)
+x = layers.Conv2D(128, (3, 3), activation="relu", padding="same")(x)
+x = layers.MaxPooling2D(pool_size=(2, 2), padding="same", strides=2)(x)
+
+x = layers.Conv2D(256, (3, 3), activation="relu", padding="same")(x)
+x = layers.Conv2D(256, (3, 3), activation="relu", padding="same")(x)
+x = layers.Conv2D(256, (3, 3), activation="relu", padding="same")(x)
+x = layers.MaxPooling2D(pool_size=(2, 2), padding="same", strides=2)(x)
 
 
+x = layers.Conv2D(512, (3, 3), activation="relu", padding="same")(x)
+x = layers.Conv2D(512, (3, 3), activation="relu", padding="same")(x)
+x = layers.Conv2D(512, (3, 3), activation="relu", padding="same")(x)
 
-x = layers.Conv2D(64, (3, 3), activation="relu")(x)
-# x = layers.Conv2D(256, (3, 3), activation="tanh")(x)
-# x = layers.Conv2D(256, (3, 3), activation="tanh")(x)
-x = tf.keras.layers.BatchNormalization()(x)
-x = layers.MaxPooling2D(pool_size=(2, 2))(x)
-
-
-# x = layers.Conv2D(512, (3, 3), activation="relu")(x)
-# x = layers.Conv2D(512, (3, 3), activation="relu")(x)
-# x = layers.Conv2D(512, (3, 3), activation="relu")(x)
-# x = tf.keras.layers.BatchNormalization()(x)
-# x = layers.MaxPooling2D(pool_size=(2, 2))(x)
+x = layers.MaxPooling2D(pool_size=(2, 2), padding="same", strides=2)(x)
 # x = layers.Dropout(0.1)(x)
 
 x = layers.Flatten()(x)
-x = layers.Dense(1024, activation="tanh")(x)
-x = tf.keras.layers.BatchNormalization()(x)
+# x = layers.Dense(256, activation="tanh")(x)
+# x = tf.keras.layers.BatchNormalization()(x)
 # x = layers.Dense(10, activation="tanh")(x)
-#x = layers.Dense(4096, activation="tanh")(x)
-x = layers.Dense(256, activation="tanh")(x)
+x = layers.Dense(4096, activation="relu")(x)
+x = layers.Dense(4096, activation="relu")(x)
+x = layers.Dense(4096, activation="relu")(x)
 embedding_network = keras.Model(input, x)
 
 
