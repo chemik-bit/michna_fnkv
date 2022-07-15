@@ -34,7 +34,7 @@ import pickle
 """
 
 epochs = 200
-batch_size = 16
+batch_size = 64
 margin = 1  # Margin for constrastive loss.
 
 """
@@ -115,27 +115,22 @@ margin = 1  # Margin for constrastive loss.
 #         labels += [0]
 #
 #     return np.array(pairs), np.array(labels).astype("float32")
-training_set_size = 3000 # 2000
-validation_set_size = 500 # 1000
+
 pickled_pairs_path = Path("../../data/voiced_pairs_train.pickled")
 with open(pickled_pairs_path, "rb") as f:
-    pairs = pickle.load(f)
-    labels = pickle.load(f)
-print("train labels", len(labels))
-pairs_train = np.asarray(pairs[:training_set_size])
-labels_train = np.asarray(labels[:training_set_size], dtype=np.float32)
-pairs_val = np.asarray(pairs[training_set_size:])
-labels_val = np.asarray(labels[training_set_size:], dtype=np.float32)
+    pairs_train = np.asarray(pickle.load(f))
+    labels_train = np.asarray(pickle.load(f), dtype=np.float32)
+
+pickled_pairs_path = Path("../../data/voiced_pairs_validation.pickled")
+with open(pickled_pairs_path, "rb") as f:
+    pairs_val = np.asarray(pickle.load(f))
+    labels_val = np.asarray(pickle.load(f), dtype=np.float32)
 
 pickled_pairs_path = Path("../../data/voiced_pairs_test.pickled")
-with open(pickled_pairs_path, "rb") as f1:
-    pairs_test= pickle.load(f1)
-    labels_test = pickle.load(f1)
-labels_test = np.asarray(labels_test)
-labels_test = np.asarray(labels_test, dtype=np.float32)
-pairs_test = np.asarray(pairs_test)
-print("test labels: ", len(labels_test))
-print(pairs_train.shape)
+with open(pickled_pairs_path, "rb") as f:
+    pairs_test = np.asarray(pickle.load(f))
+    labels_test = np.asarray(pickle.load(f), dtype=np.float32)
+
 input_size = pairs_train.shape[2]
 # # make train pairs
 # pairs_train, labels_train = make_pairs(x_train, y_train)
@@ -287,25 +282,24 @@ def euclidean_distance(vects):
 
 input = layers.Input((input_size, input_size, 3))
 x = tf.keras.layers.BatchNormalization()(input)
-x = layers.Conv2D(64, (5, 5), activation="tanh")(x) # 8
-x = layers.Conv2D(64, (5, 5), activation="tanh")(x) # 8
+x = layers.Conv2D(16, (3, 3), activation="relu")(x) # 8
+
 x = tf.keras.layers.BatchNormalization()(x)
 x = layers.MaxPooling2D(pool_size=(2, 2))(x)
-x = layers.Dropout(0.01)(x)
 
-x = layers.Conv2D(64, (3, 3), activation="tanh")(x)
-x = layers.Conv2D(128, (3, 3), activation="tanh")(x)
+
+x = layers.Conv2D(32, (3, 3), activation="relu")(x)
 x = tf.keras.layers.BatchNormalization()(x)
 x = layers.MaxPooling2D(pool_size=(2, 2))(x)
-x = layers.Dropout(0.01)(x)
 
 
-x = layers.Conv2D(128, (3, 3), activation="tanh")(x)
+
+x = layers.Conv2D(64, (3, 3), activation="relu")(x)
 # x = layers.Conv2D(256, (3, 3), activation="tanh")(x)
 # x = layers.Conv2D(256, (3, 3), activation="tanh")(x)
 x = tf.keras.layers.BatchNormalization()(x)
 x = layers.MaxPooling2D(pool_size=(2, 2))(x)
-x = layers.Dropout(0.01)(x)
+
 
 # x = layers.Conv2D(512, (3, 3), activation="relu")(x)
 # x = layers.Conv2D(512, (3, 3), activation="relu")(x)
@@ -315,11 +309,11 @@ x = layers.Dropout(0.01)(x)
 # x = layers.Dropout(0.1)(x)
 
 x = layers.Flatten()(x)
-x = layers.Dense(4096, activation="tanh")(x)
+x = layers.Dense(1024, activation="tanh")(x)
 x = tf.keras.layers.BatchNormalization()(x)
 # x = layers.Dense(10, activation="tanh")(x)
 #x = layers.Dense(4096, activation="tanh")(x)
-x = layers.Dense(4096, activation="tanh")(x)
+x = layers.Dense(256, activation="tanh")(x)
 embedding_network = keras.Model(input, x)
 
 

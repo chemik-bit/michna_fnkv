@@ -3,7 +3,8 @@ import pickle
 
 # path to voiced database
 voiced_path = Path("../data/voiced")
-images_for_test = 30
+test_sample_size = 30
+validation_sample_size = 40
 # list with paths to wav files
 voiced_spectrograms = []
 # list with wav file status (healthy/nonhealthy)
@@ -21,15 +22,21 @@ for description_file in voiced_path.glob("*.hea"):
             voiced_target.append(0) # 0 represents nonhealthy subject
 
 # check print
-print(voiced_spectrograms[-images_for_test:])
-print(voiced_target[-images_for_test:])
+print("test ", len(voiced_target[-(test_sample_size + validation_sample_size):-validation_sample_size]))
+print("train ", len(voiced_target[:-(test_sample_size + validation_sample_size)]))
+print("validation ", len(voiced_target[-validation_sample_size:]))
+
 
 # pickle first paths then target
 with open(Path("../data/voiced_train.pickled"), "wb") as f:
-    pickle.dump(voiced_spectrograms[:-images_for_test], f)
-    pickle.dump(voiced_target[:-images_for_test], f)
+    pickle.dump(voiced_spectrograms[:-(test_sample_size + validation_sample_size)], f)
+    pickle.dump(voiced_target[:-(test_sample_size + validation_sample_size)], f)
 
 # pickle first paths then target
 with open(Path("../data/voiced_test.pickled"), "wb") as f:
-    pickle.dump(voiced_spectrograms[-images_for_test:], f)
-    pickle.dump(voiced_target[-images_for_test:], f)
+    pickle.dump(voiced_spectrograms[-(test_sample_size + validation_sample_size):-validation_sample_size], f)
+    pickle.dump(voiced_target[-(test_sample_size + validation_sample_size):-validation_sample_size], f)
+
+with open(Path("../data/voiced_validation.pickled"), "wb") as f:
+    pickle.dump(voiced_spectrograms[-validation_sample_size:], f)
+    pickle.dump(voiced_target[-validation_sample_size:], f)
