@@ -2,6 +2,7 @@ from pathlib import Path
 import pickle
 import random
 import cv2
+import itertools
 import numpy as np
 
 
@@ -29,59 +30,40 @@ def make_pairs(image_paths: Path, image_labels: list, desired_image_size: tuple,
     image_pairs = []
     pairs_labels = []
     random_paths = []
+    healthy_images = []
+    nonhealthy_images = []
+    final_labels = []
     for healthy_image_path in image_paths_healthy:
         # read image
         image = cv2.imread(healthy_image_path)
         # resize image according to desired_image_size
         image = cv2.resize(image, desired_image_size, interpolation=cv2.INTER_AREA)
-        random_images = random.sample(image_paths_healthy, instance_pairs)
-        for random_path in random_images:
-            random_paths.append([healthy_image_path, random_path])
-            # sample random images
-            random_image = cv2.imread(random_path)
-            random_image = cv2.resize(random_image, desired_image_size, interpolation=cv2.INTER_AREA)
-            image_pairs.append([image, random_image])
-            pairs_labels.append(1)
-
-        random_images = random.sample(image_paths_nonhealthy, instance_pairs)
-        for random_path in random_images:
-            # sample random images
-            random_paths.append([healthy_image_path, random_path])
-            random_image = cv2.imread(random_path)
-            random_image = cv2.resize(random_image, desired_image_size, interpolation=cv2.INTER_AREA)
-            image_pairs.append([image, random_image])
-            pairs_labels.append(0)
-
+        healthy_images.append(image)
     for nonhealthy_image_path in image_paths_nonhealthy:
         # read image
         image = cv2.imread(nonhealthy_image_path)
         # resize image according to desired_image_size
         image = cv2.resize(image, desired_image_size, interpolation=cv2.INTER_AREA)
-        random_images = random.sample(image_paths_nonhealthy, instance_pairs)
-        for random_path in random_images:
-            random_paths.append([nonhealthy_image_path, random_path])
-            # sample random images
-            random_image = cv2.imread(random_path)
-            random_image = cv2.resize(random_image, desired_image_size, interpolation=cv2.INTER_AREA)
-            image_pairs.append([image, random_image])
-            pairs_labels.append(1)
+        nonhealthy_images.append(image)
 
-        random_images = random.sample(image_paths_healthy, instance_pairs)
-        for random_path in random_images:
-            random_paths.append([nonhealthy_image_path, random_path])
-            # sample random images
-            random_image = cv2.imread(random_path)
-            random_image = cv2.resize(random_image, desired_image_size, interpolation=cv2.INTER_AREA)
-            image_pairs.append([image, random_image])
-            pairs_labels.append(0)
+    image_labels = []
+    pairs = list(itertools.product(healthy_images, healthy_images))
+    image_pairs += pairs
+    image_labels += len(pairs) * [1]
+    print(f"{len(image_pairs)} - {len(image_labels)}")
 
+    pairs = list(itertools.product(nonhealthy_images, nonhealthy_images))
+    image_pairs += pairs
+    image_labels += len(pairs) * [1]
+
+    pairs = list(itertools.product(healthy_images, nonhealthy_images))
+    image_pairs += pairs
+    image_labels += len(pairs) * [0]
 
     with open(path_to_save, "wb") as f:
         pickle.dump(image_pairs, f)
-        pickle.dump(pairs_labels, f)
+        pickle.dump(image_labels, f)
 
-    print(random_paths)
-    print(pairs_labels)
 
 pickled_sets = {"train": (Path("../data/voiced_train.pickled"), Path("../data/voiced_pairs_train.pickled"), 20),
                 "validation": (Path("../data/voiced_validation.pickled"),

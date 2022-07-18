@@ -10,12 +10,12 @@ from pydub import AudioSegment
 import numpy as np
 
 
-file_path = Path("../data/sound_files/DR00F-CZ-T-36721_2022-05-26_090010.wav")
-sound = AudioSegment.from_wav(file_path)
-sound = sound.set_channels(1)
-sound.export(Path("../data/mono/DR00F-CZ-T-36721_2022-05-26_090010.wav"), format="wav")
+# file_path = Path("../data/sound_files/DR00F-CZ-T-36721_2022-05-26_090010.wav")
+# sound = AudioSegment.from_wav(file_path)
+# sound = sound.set_channels(1)
+# sound.export(Path("../data/mono/DR00F-CZ-T-36721_2022-05-26_090010.wav"), format="wav")
 
-file_path = Path("../data/mono/DR00F-CZ-T-36721_2022-05-26_090010.wav")
+file_path = Path("../data/voiced/voice003.wav")
 
 sample_rate, samples = wavfile.read(file_path)
 print(f"samples shape.. {samples.shape}")

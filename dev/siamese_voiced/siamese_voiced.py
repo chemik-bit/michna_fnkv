@@ -309,9 +309,9 @@ x = layers.Flatten()(x)
 # x = layers.Dense(256, activation="tanh")(x)
 # x = tf.keras.layers.BatchNormalization()(x)
 # x = layers.Dense(10, activation="tanh")(x)
-x = layers.Dense(4096, activation="relu")(x)
-x = layers.Dense(4096, activation="relu")(x)
-x = layers.Dense(4096, activation="relu")(x)
+#x = layers.Dense(4096, activation="relu")(x)
+x = layers.Dense(1024, activation="relu")(x)
+x = layers.Dense(1024, activation="relu")(x)
 embedding_network = keras.Model(input, x)
 
 
