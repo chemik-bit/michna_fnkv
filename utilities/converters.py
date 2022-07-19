@@ -120,5 +120,3 @@ for sound_file in SOURCE_PATH.glob("*.wav"):
     wav2spectrogram(sound_file, DESTINATION_PATH, 256)
     end = timer()
     print(f"{sound_file.name} conversion: {end-start:.2f} s")
-
-
