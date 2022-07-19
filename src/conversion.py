@@ -5,18 +5,27 @@ Helper module..
 """
 from pathlib import Path
 from timeit import default_timer as timer
-from utilities.converters import stereo2mono, wav2spectrogram, txt2wav
+from utilities.converters import stereo2mono, wav2spectrogram, txt2wav, rename_voiced
 
+
+########################################################################
+#                           RENAME VOICED                              #
+########################################################################
+
+SOURCE_PATH = Path("../data/voiced")
+DESTINATION_PATH = Path("../data/voiced_renamed")
+
+rename_voiced(SOURCE_PATH, DESTINATION_PATH)
 
 ########################################################################
 #                           TXT to WAV                                 #
 ########################################################################
-SOURCE_PATH = Path("../data/voiced")
-DESTINATION_PATH = Path("../data/voiced/spectrograms")
-for sound_file in SOURCE_PATH.glob("voice???.txt"):
+SOURCE_PATH = Path("../data/voiced_renamed")
+DESTINATION_PATH = Path("../data/voiced_renamed/spectrograms")
+for sound_file in SOURCE_PATH.glob("*.txt"):
     start = timer()
 
-    txt2wav(sound_file, SOURCE_PATH)
+    txt2wav(sound_file, SOURCE_PATH, chunks=10)
 
     end = timer()
     print(f"{sound_file.name} conversion: {end-start:.2f} s")
@@ -33,13 +42,15 @@ for sound_file in SOURCE_PATH.glob("voice???.txt"):
 #     stereo2mono(sound_file, DESTINATION_PATH)
 
 ########################################################################
-#                        WAV to SPETROGRAM                             #
+#                        WAV to SPECTROGRAM                             #
 ########################################################################
-SOURCE_PATH = Path("../data/voiced")
-DESTINATION_PATH = Path("../data/voiced/spectrograms")
+SOURCE_PATH = Path("../data/voiced_renamed")
+DESTINATION_PATH = Path("../data/voiced_renamed/spectrograms")
 for sound_file in SOURCE_PATH.glob("*.wav"):
     start = timer()
     print(f"converting {sound_file.name}")
     wav2spectrogram(sound_file, DESTINATION_PATH, 256)
     end = timer()
     print(f"{sound_file.name} conversion: {end-start:.2f} s")
+
+

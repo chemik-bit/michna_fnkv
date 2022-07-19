@@ -2,25 +2,21 @@ from pathlib import Path
 import pickle
 
 # path to voiced database
-voiced_path = Path("../data/voiced")
-test_sample_size = 30
-validation_sample_size = 40
+voiced_path = Path("../data/voiced_renamed/spectrograms")
+test_sample_size = 300
+validation_sample_size = 300
 # list with paths to wav files
 voiced_spectrograms = []
 # list with wav file status (healthy/nonhealthy)
 voiced_target = []
 
-for description_file in voiced_path.glob("*.hea"):
+for spectrogram_file in voiced_path.glob("*.png"):
     # append path to wav file
-    voiced_spectrograms.append(voiced_path.joinpath("spectrograms",description_file.stem + ".png").resolve())
-    with open(description_file, "r") as f:
-        data = f.readlines()
-        # append to target the diagnosis corresponding to wav file (healthy/nonhealthy)
-        if "healthy" in data[-1]: print(data[-1])
-        if "healthy" in data[-1]:
-            voiced_target.append(1) # 1 represents healthy subject
-        else:
-            voiced_target.append(0) # 0 represents nonhealthy subject
+    voiced_spectrograms.append(spectrogram_file.resolve())
+    if "nonhealthy" in spectrogram_file.stem:
+        voiced_target.append(0)
+    else:
+        voiced_target.append(1)
 
 # check print
 print("test ", len(voiced_target[-(test_sample_size + validation_sample_size):-validation_sample_size]))

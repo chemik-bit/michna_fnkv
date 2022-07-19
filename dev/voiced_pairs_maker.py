@@ -100,5 +100,3 @@ for item in pickled_sets.values():
         labels = pickle.load(f)
 
     print(f"{item[1]} - {len(labels)}")
-
-
