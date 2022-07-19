@@ -30,6 +30,7 @@ def make_pairs(image_paths: Path, image_labels: list, desired_image_size: tuple,
     pairs_labels = []
     random_paths = []
     for healthy_image_path in image_paths_healthy:
+        print(f"processing {healthy_image_path}")
         # read image
         image = cv2.imread(healthy_image_path)
         # resize image according to desired_image_size
@@ -53,6 +54,7 @@ def make_pairs(image_paths: Path, image_labels: list, desired_image_size: tuple,
             pairs_labels.append(0)
 
     for nonhealthy_image_path in image_paths_nonhealthy:
+        print(f"processing {nonhealthy_image_path}")
         # read image
         image = cv2.imread(nonhealthy_image_path)
         # resize image according to desired_image_size
@@ -83,10 +85,10 @@ def make_pairs(image_paths: Path, image_labels: list, desired_image_size: tuple,
     print(random_paths)
     print(pairs_labels)
 
-pickled_sets = {"train": (Path("../data/voiced_train.pickled"), Path("../data/voiced_pairs_train.pickled"), 20),
+pickled_sets = {"train": (Path("../data/voiced_train.pickled"), Path("../data/voiced_pairs_train.pickled"), 10),
                 "validation": (Path("../data/voiced_validation.pickled"),
-                               Path("../data/voiced_pairs_validation.pickled"), 4),
-                "test": (Path("../data/voiced_test.pickled"), Path("../data/voiced_pairs_test.pickled"), 2)
+                               Path("../data/voiced_pairs_validation.pickled"), 5),
+                "test": (Path("../data/voiced_test.pickled"), Path("../data/voiced_pairs_test.pickled"), 5)
                 }
 
 for item in pickled_sets.values():

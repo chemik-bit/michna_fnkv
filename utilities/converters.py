@@ -47,7 +47,9 @@ def txt2wav(source_path: Path, destination_path: Path, sample_rate=8000, chunks=
     txt_data = np.loadtxt(source_path)
     wav_chunks = np.array_split(txt_data, chunks)
     if len(wav_chunks[:-1]) != len(wav_chunks[0]):
+        wav_chunks.pop(0) # to remove bad data at start
         wav_chunks.pop(-1)
+
     for idx, wav_chunk in enumerate(wav_chunks):
         chunk_path = destination_path.joinpath(f"{source_path.stem}_ {idx:05d}.wav")
         wavfile.write(filename=chunk_path, rate=sample_rate, data=wav_chunk)

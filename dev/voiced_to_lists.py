@@ -17,7 +17,8 @@ for spectrogram_file in voiced_path.glob("*.png"):
         voiced_target.append(0)
     else:
         voiced_target.append(1)
-
+print(voiced_spectrograms)
+print(voiced_target)
 # check print
 print("test ", len(voiced_target[-(test_sample_size + validation_sample_size):-validation_sample_size]))
 print("train ", len(voiced_target[:-(test_sample_size + validation_sample_size)]))
