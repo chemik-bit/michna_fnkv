@@ -63,6 +63,12 @@ def make_pairs(image_paths: Path, image_labels: list, desired_image_size: tuple,
     image_pairs += pairs
     image_labels += len(pairs) * [0]
     print(len(image_pairs))
+    temp = list(zip(image_pairs, image_labels))
+    random.shuffle(temp)
+    res1, res2 = zip(*temp)
+    # res1 and res2 come out as tuples, and so must be converted to lists.
+    image_pairs, image_labels = list(res1), list(res2)
+
     tf_dict = {"data": [], "labels": []}
     for idx, image_pair in enumerate(image_pairs):
         tf_dict["data"].append(image_pair)

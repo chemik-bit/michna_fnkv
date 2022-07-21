@@ -40,7 +40,7 @@ epochs = 100
 batch_size = 4
 margin = 1  # Margin for constrastive loss.
 import os
-#os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 """
 ## Load the MNIST dataset
 """
