@@ -30,6 +30,8 @@ from tensorflow.keras import layers
 import matplotlib.pyplot as plt
 import pickle
 from datasets import Dataset
+from tensorflow.keras.backend import epsilon
+from tensorflow.math import reduce_sum, square, maximum, sqrt
 """
 ## Hyperparameters
 """
@@ -273,20 +275,23 @@ merged output is fed to the final network.
 
 # Provided two tensors t1 and t2
 # Euclidean distance = sqrt(sum(square(t1-t2)))
-# def euclidean_distance(vects):
-#     """Find the Euclidean distance between two vectors.
-#     Arguments:
-#         vects: List containing two tensors of same length.
-#     Returns:
-#         Tensor containing euclidean distance
-#         (as floating point value) between vectors.
-#     """
-#     from tensorflow.keras.backend import epsilon
-#     from tensorflow.math import reduce_sum, square, maximum, sqrt
-#     x, y = vects
-#     sum_square = reduce_sum(square(x - y), axis=1, keepdims=True)
-#     return sqrt(maximum(sum_square, epsilon()))
+def euclidean_distance(vects):
+    """Find the Euclidean distance between two vectors.
+    Arguments:
+        vects: List containing two tensors of same length.
+    Returns:
+        Tensor containing euclidean distance
+        (as floating point value) between vectors.
+    """
+    from tensorflow.keras.backend import epsilon
+    from tensorflow.math import reduce_sum, square, maximum, sqrt
+    x, y = vects
+    sum_square = reduce_sum(square(x - y), axis=1, keepdims=True)
+    return sqrt(maximum(sum_square, epsilon()))
 
+def euclidean_distance_output_shape(shapes):
+    shape1, shape2 = shapes
+    return (shape1[0], 1)
 
 input_size = 224
 
@@ -333,10 +338,13 @@ input_2 = layers.Input((input_size, input_size, 3))
 # same embedding network for both tower networks.
 tower_1 = embedding_network(input_1)
 tower_2 = embedding_network(input_2)
-
-# merge_layer = layers.Lambda(euclidean_distance)([tower_1, tower_2])
-merge_layer = layers.Lambda(lambda x: keras.backend.sum(keras.backend.abs(x), axis=-1, keepdims=True),
-        name='euclidean')([tower_1, tower_2])
+#
+# sum_square = reduce_sum(square(x - y), axis=1, keepdims=True)
+# return sqrt(maximum(sum_square, epsilon()))
+merge_layer = layers.Lambda(lambda x: sqrt(maximum(reduce_sum(square(x[0]-x[1]), axis=1, keepdims=True), epsilon())))([tower_1, tower_2])
+# merge_layer = layers.Lambda(euclidean_distance, name="euclidean_distance", output_shape=euclidean_distance_output_shape)([tower_1, tower_2])
+# merge_layer = layers.Lambda(lambda x: keras.backend.sum(keras.backend.abs(x), axis=-1, keepdims=True),
+#         name='euclidean')([tower_1, tower_2])
 
 normal_layer = tf.keras.layers.BatchNormalization()(merge_layer)
 output_layer = layers.Dense(1, activation="sigmoid")(normal_layer)
@@ -403,13 +411,17 @@ def contrastive_loss(y_true, y_pred):
 # siamese.compile(loss=loss(margin=margin), optimizer="RMSprop", metrics=["accuracy"])
 siamese.compile(loss=contrastive_loss, optimizer="Adam", metrics=["accuracy"])
 siamese.summary()
-
-
+siamese.save("./siamese_tf")
+siamese = tf.keras.models.load_model("./siamese_tf", custom_objects=({
+            "contrastive_loss": contrastive_loss,
+            "euclidean_distance": euclidean_distance,
+            "euclidean_distance_output_shape": euclidean_distance_output_shape
+        }))
 """
 ## Train the model
 """
 first_run = False
-epochs = 1
+epochs = 5
 with open(Path("../../data/splited_voiced/val/voiced_pairs_00002.pickled"), "rb") as f:
     data = pickle.load(f)
     pairs_val = np.asarray(data["data"])
@@ -420,7 +432,8 @@ for train_dataset_path in Path("../../data/splited_voiced/train").glob("*.pickle
     print(f"Training dataset: {train_dataset_path}")
     if first_run:
         siamese = tf.keras.models.load_model("./siamese_tf", custom_objects=({
-            "contrastive_loss": contrastive_loss
+            "contrastive_loss": contrastive_loss,
+            "euclidean_distance": euclidean_distance
         }))
 
     with open(train_dataset_path, "rb") as f:
