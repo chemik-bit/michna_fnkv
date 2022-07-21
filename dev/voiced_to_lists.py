@@ -1,16 +1,18 @@
 from pathlib import Path
 import pickle
+import random
 
 # path to voiced database
 voiced_path = Path("../data/voiced_renamed/spectrograms")
-test_sample_size = 300
-validation_sample_size = 300
+test_sample_size = 80
+validation_sample_size = 80
 # list with paths to wav files
 voiced_spectrograms = []
 # list with wav file status (healthy/nonhealthy)
 voiced_target = []
-
-for spectrogram_file in voiced_path.glob("*.png"):
+spectograms_list = list(voiced_path.glob("*.png"))
+random.shuffle(spectograms_list)
+for spectrogram_file in spectograms_list:
     # append path to wav file
     voiced_spectrograms.append(spectrogram_file.resolve())
     if "nonhealthy" in spectrogram_file.stem:

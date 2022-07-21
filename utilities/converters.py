@@ -79,44 +79,44 @@ def rename_voiced(voiced_path: Path, destination_path: Path):
 ########################################################################
 #                           RENAME VOICED                              #
 ########################################################################
-
-SOURCE_PATH = Path("../data/voiced")
-DESTINATION_PATH = Path("../data/voiced_renamed")
-
-rename_voiced(SOURCE_PATH, DESTINATION_PATH)
-
-########################################################################
-#                           TXT to WAV                                 #
-########################################################################
-SOURCE_PATH = Path("../data/voiced_renamed")
-DESTINATION_PATH = Path("../data/voiced_renamed/spectrograms")
-for sound_file in SOURCE_PATH.glob("*.txt"):
-    start = timer()
-
-    txt2wav(sound_file, SOURCE_PATH, chunks=14)
-
-    end = timer()
-    print(f"{sound_file.name} conversion: {end-start:.2f} s")
-
-########################################################################
-#                        WAV to MONO WAV                               #
-########################################################################
-
+#
 # SOURCE_PATH = Path("../data/voiced")
-# DESTINATION_PATH = Path("../data/voiced/mono")
-# # convert stereo soundfiles to mono
+# DESTINATION_PATH = Path("../data/voiced_renamed")
+#
+# rename_voiced(SOURCE_PATH, DESTINATION_PATH)
+#
+# ########################################################################
+# #                           TXT to WAV                                 #
+# ########################################################################
+# SOURCE_PATH = Path("../data/voiced_renamed")
+# DESTINATION_PATH = Path("../data/voiced_renamed/spectrograms")
+# for sound_file in SOURCE_PATH.glob("*.txt"):
+#     start = timer()
+#
+#     txt2wav(sound_file, SOURCE_PATH, chunks=8)
+#
+#     end = timer()
+#     print(f"{sound_file.name} conversion: {end-start:.2f} s")
+#
+# ########################################################################
+# #                        WAV to MONO WAV                               #
+# ########################################################################
+#
+# # SOURCE_PATH = Path("../data/voiced")
+# # DESTINATION_PATH = Path("../data/voiced/mono")
+# # # convert stereo soundfiles to mono
+# # for sound_file in SOURCE_PATH.glob("*.wav"):
+# #     print(sound_file.resolve())
+# #     stereo2mono(sound_file, DESTINATION_PATH)
+#
+# ########################################################################
+# #                        WAV to SPECTROGRAM                             #
+# ########################################################################
+# SOURCE_PATH = Path("../data/voiced_renamed")
+# DESTINATION_PATH = Path("../data/voiced_renamed/spectrograms")
 # for sound_file in SOURCE_PATH.glob("*.wav"):
-#     print(sound_file.resolve())
-#     stereo2mono(sound_file, DESTINATION_PATH)
-
-########################################################################
-#                        WAV to SPECTROGRAM                             #
-########################################################################
-SOURCE_PATH = Path("../data/voiced_renamed")
-DESTINATION_PATH = Path("../data/voiced_renamed/spectrograms")
-for sound_file in SOURCE_PATH.glob("*.wav"):
-    start = timer()
-    print(f"converting {sound_file.name}")
-    wav2spectrogram(sound_file, DESTINATION_PATH, 256)
-    end = timer()
-    print(f"{sound_file.name} conversion: {end-start:.2f} s")
+#     start = timer()
+#     print(f"converting {sound_file.name}")
+#     wav2spectrogram(sound_file, DESTINATION_PATH, 256)
+#     end = timer()
+#     print(f"{sound_file.name} conversion: {end-start:.2f} s")

@@ -48,27 +48,43 @@ def make_pairs(image_paths: Path, image_labels: list, desired_image_size: tuple,
 
     image_labels = []
     pairs = list(itertools.product(healthy_images, healthy_images))
+    random.shuffle(pairs)
     image_pairs += pairs
     image_labels += len(pairs) * [1]
     print(f"{len(image_pairs)} - {len(image_labels)}")
 
     pairs = list(itertools.product(nonhealthy_images, nonhealthy_images))
+    random.shuffle(pairs)
     image_pairs += pairs
     image_labels += len(pairs) * [1]
 
     pairs = list(itertools.product(healthy_images, nonhealthy_images))
+    random.shuffle(pairs)
     image_pairs += pairs
     image_labels += len(pairs) * [0]
+    print(len(image_pairs))
+    tf_dict = {"data": [], "labels": []}
+    for idx, image_pair in enumerate(image_pairs):
+        tf_dict["data"].append(image_pair)
+        tf_dict["labels"].append(image_labels[idx])
+        if idx > 0 and idx % 1000 == 0:
+            path_to_save_pickle = path_to_save.joinpath(f"voiced_pairs_{int(idx / 1000):05d}.pickled")
+            with open(path_to_save_pickle, "wb") as f:
+                # pickle.dump(image_pairs, f)
+                # pickle.dump(image_labels, f)
+                pickle.dump(tf_dict, f)
+            print(f"Saving to {path_to_save_pickle}")
+            tf_dict = {"data": [], "labels": []}
 
-    with open(path_to_save, "wb") as f:
-        pickle.dump(image_pairs, f)
-        pickle.dump(image_labels, f)
+    with open(path_to_save.joinpath("voiced_pairs.pickled"), "wb") as f:
+        #pickle.dump(image_pairs, f)
+        #pickle.dump(image_labels, f)
+        pickle.dump(tf_dict, f)
 
-
-pickled_sets = {"train": (Path("../data/voiced_train.pickled"), Path("../data/voiced_pairs_train.pickled"), 20),
+pickled_sets = {"train": (Path("../data/voiced_train.pickled"), Path("../data/splited_voiced/train"), 20),
                 "validation": (Path("../data/voiced_validation.pickled"),
-                               Path("../data/voiced_pairs_validation.pickled"), 4),
-                "test": (Path("../data/voiced_test.pickled"), Path("../data/voiced_pairs_test.pickled"), 2)
+                               Path("../data/splited_voiced/val"), 4),
+                "test": (Path("../data/voiced_test.pickled"), Path("../data/splited_voiced/test"), 2)
                 }
 
 for item in pickled_sets.values():
@@ -77,10 +93,10 @@ for item in pickled_sets.values():
         image_labels = pickle.load(f)
 
     make_pairs(image_paths, image_labels, (224, 224), item[1], item[2])
-    with open(item[1], "rb") as f:
-        pairs = pickle.load(f)
-        labels = pickle.load(f)
-
-    print(f"{item[1]} - {len(labels)}")
+    # with open(item[1], "rb") as f:
+    #     # pairs = pickle.load(f)
+    #     # labels = pickle.load(f)
+    #     tf_test = pickle.load(f)
+    # print(f"{item[1]} - {len(tf_test)}")
 
 

@@ -25,7 +25,7 @@ DESTINATION_PATH = Path("../data/voiced_renamed/spectrograms")
 for sound_file in SOURCE_PATH.glob("*.txt"):
     start = timer()
 
-    txt2wav(sound_file, SOURCE_PATH, chunks=14)
+    txt2wav(sound_file, SOURCE_PATH, chunks=5)
 
     end = timer()
     print(f"{sound_file.name} conversion: {end-start:.2f} s")

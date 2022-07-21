@@ -34,10 +34,10 @@ from datasets import Dataset
 """
 
 epochs = 100
-batch_size = 8
+batch_size = 4
 margin = 1  # Margin for constrastive loss.
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+#os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 """
 ## Load the MNIST dataset
 """
@@ -117,27 +117,27 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 #
 #     return np.array(pairs), np.array(labels).astype("float32")
 
-pickled_pairs_path = Path("../../data/voiced_pairs_train.pickled")
-with open(pickled_pairs_path, "rb") as f:
-    # pairs_train = np.asarray(pickle.load(f))
-    # labels_train = np.asarray(pickle.load(f), dtype=np.float32)
-    ds = Dataset.from_dict(pickle.load(f))
-train_dataset = ds.to_tf_dataset(columns=["inputs"], label_cols=["labels"], batch_size=100, shuffle=True)
-
-pickled_pairs_path = Path("../../data/voiced_pairs_validation.pickled")
-with open(pickled_pairs_path, "rb") as f:
-    # pairs_val = np.asarray(pickle.load(f))
-    # labels_val = np.asarray(pickle.load(f), dtype=np.float32)
-    ds = Dataset.from_dict(pickle.load(f))
-validation_dataset = ds.to_tf_dataset(columns=["inputs"], label_cols=["labels"], batch_size=10, shuffle=True)
-
-pickled_pairs_path = Path("../../data/voiced_pairs_test.pickled")
-with open(pickled_pairs_path, "rb") as f:
-    # pairs_test = np.asarray(pickle.load(f))
-    # labels_test = np.asarray(pickle.load(f), dtype=np.float32)
-    ds = Dataset.from_dict(pickle.load(f))
-test_dataset = ds.to_tf_dataset(columns=["inputs"], label_cols=["labels"], batch_size=10, shuffle=True)
-input_size = 224
+# pickled_pairs_path = Path("../../data/voiced_pairs_train.pickled")
+# with open(pickled_pairs_path, "rb") as f:
+#     # pairs_train = np.asarray(pickle.load(f))
+#     # labels_train = np.asarray(pickle.load(f), dtype=np.float32)
+#     ds = Dataset.from_dict(pickle.load(f))
+# train_dataset = ds.to_tf_dataset(columns=["inputs"], label_cols=["labels"], batch_size=100, shuffle=True)
+#
+# pickled_pairs_path = Path("../../data/voiced_pairs_validation.pickled")
+# with open(pickled_pairs_path, "rb") as f:
+#     # pairs_val = np.asarray(pickle.load(f))
+#     # labels_val = np.asarray(pickle.load(f), dtype=np.float32)
+#     ds = Dataset.from_dict(pickle.load(f))
+# validation_dataset = ds.to_tf_dataset(columns=["inputs"], label_cols=["labels"], batch_size=10, shuffle=True)
+#
+# pickled_pairs_path = Path("../../data/voiced_pairs_test.pickled")
+# with open(pickled_pairs_path, "rb") as f:
+#     # pairs_test = np.asarray(pickle.load(f))
+#     # labels_test = np.asarray(pickle.load(f), dtype=np.float32)
+#     ds = Dataset.from_dict(pickle.load(f))
+# test_dataset = ds.to_tf_dataset(columns=["inputs"], label_cols=["labels"], batch_size=10, shuffle=True)
+# input_size = 224
 # # make train pairs
 # pairs_train, labels_train = make_pairs(x_train, y_train)
 # print(pairs_train[:3], labels_train[:3])
@@ -286,6 +286,9 @@ def euclidean_distance(vects):
     return tf.math.sqrt(tf.math.maximum(sum_square, tf.keras.backend.epsilon()))
 
 
+input_size = 224
+
+
 input = layers.Input((input_size, input_size, 3))
 x = tf.keras.layers.BatchNormalization()(input)
 x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x) # 8
@@ -382,6 +385,39 @@ siamese.summary()
 """
 ## Train the model
 """
+first_run = False
+epochs = 5
+with open(Path("../../data/splited_voiced/val/voiced_pairs_00002.pickled"), "rb") as f:
+    data = pickle.load(f)
+    pairs_val = np.asarray(data["data"])
+    labels_val = np.asarray(data["labels"], dtype=np.float32)
+x_val_1 = pairs_val[:, 0]  # x_val_1.shape = (60000, 28, 28)
+x_val_2 = pairs_val[:, 1]
+for train_dataset_path in Path("../../data/splited_voiced/train").glob("*.pickled"):
+    print(f"Training dataset: {train_dataset_path}")
+    if first_run:
+        siamese = tf.keras.models.load_model("./siamese_tf")
+    with open(train_dataset_path, "rb") as f:
+        data = pickle.load(f)
+        pairs_train = np.asarray(data["data"])
+        labels_train = np.asarray(data["labels"], dtype=np.float32)
+
+    #
+    x_train_1 = pairs_train[:, 0]  # x_train_1.shape is (60000, 28, 28)
+    x_train_2 = pairs_train[:, 1]
+
+    """
+    Split the validation pairs
+    """
+    #
+
+    siamese.fit(
+        [x_train_1, x_train_2], labels_train,
+        validation_data=([x_val_1, x_val_2], labels_val),
+        batch_size=batch_size,
+        epochs=epochs,
+    )
+    siamese.save("./siamese_tf")
 
 # history = siamese.fit(
 #     [x_train_1, x_train_2],
@@ -390,12 +426,13 @@ siamese.summary()
 #     batch_size=batch_size,
 #     epochs=epochs,
 # )
-history = siamese.fit(
-    train_dataset,
-    validation_data=validation_dataset,
-    batch_size=batch_size,
-    epochs=epochs,
-)
+# history = siamese.fit(
+#     train_dataset,
+#     validation_data=validation_dataset,
+#     batch_size=batch_size,
+#     epochs=epochs,
+# )
+
 """
 ## Visualize results
 """
@@ -421,22 +458,31 @@ def plt_metric(history, metric, title, has_valid=True):
     plt.show()
 
 
-# Plot the accuracy
-plt_metric(history=history.history, metric="accuracy", title="Model accuracy")
-
-# Plot the constrastive loss
-plt_metric(history=history.history, metric="loss", title="Constrastive Loss")
+# # Plot the accuracy
+# plt_metric(history=history.history, metric="accuracy", title="Model accuracy")
+#
+# # Plot the constrastive loss
+# plt_metric(history=history.history, metric="loss", title="Constrastive Loss")
 
 """
 ## Evaluate the model
 """
 
-results = siamese.evaluate(test_dataset)
-print("test loss, test acc:", results)
+for test_dataset_path in Path("../../data/splited_voiced/test").glob("*.pickled"):
+    print(f"Testing dataset: {test_dataset_path}")
+    with open(test_dataset_path, "rb") as f:
+        pairs_test = np.asarray(pickle.load(f)["data"])
+        labels_test = np.asarray(pickle.load(f)["labels"], dtype=np.float32)
+    #
+    x_test_1 = pairs_test[:, 0]  # x_test_1.shape = (20000, 28, 28)
+    x_test_2 = pairs_test[:, 1]
+    results = siamese.evaluate([x_test_1, x_test_2], labels_test)
+
+    print("test loss, test acc:", results)
 
 """
 ## Visualize the predictions
 """
 
-predictions = siamese.predict(test_dataset)
+predictions = siamese.predict([x_test_1, x_test_2], labels_test)
 # visualize(pairs_test, labels_test, to_show=3, predictions=predictions, test=True)

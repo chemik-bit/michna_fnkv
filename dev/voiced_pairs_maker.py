@@ -85,7 +85,7 @@ def make_pairs(image_paths: Path, image_labels: list, desired_image_size: tuple,
     print(random_paths)
     print(pairs_labels)
 
-pickled_sets = {"train": (Path("../data/voiced_train.pickled"), Path("../data/voiced_pairs_train.pickled"), 10),
+pickled_sets = {"train": (Path("../data/voiced_train.pickled"), Path("../data/voiced_pairs_train.pickled"), 2),
                 "validation": (Path("../data/voiced_validation.pickled"),
                                Path("../data/voiced_pairs_validation.pickled"), 5),
                 "test": (Path("../data/voiced_test.pickled"), Path("../data/voiced_pairs_test.pickled"), 5)
