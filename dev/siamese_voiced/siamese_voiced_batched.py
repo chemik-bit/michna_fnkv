@@ -25,6 +25,7 @@ import random
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
+
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
 import pickle
@@ -272,18 +273,19 @@ merged output is fed to the final network.
 
 # Provided two tensors t1 and t2
 # Euclidean distance = sqrt(sum(square(t1-t2)))
-def euclidean_distance(vects):
-    """Find the Euclidean distance between two vectors.
-    Arguments:
-        vects: List containing two tensors of same length.
-    Returns:
-        Tensor containing euclidean distance
-        (as floating point value) between vectors.
-    """
-
-    x, y = vects
-    sum_square = tf.math.reduce_sum(tf.math.square(x - y), axis=1, keepdims=True)
-    return tf.math.sqrt(tf.math.maximum(sum_square, tf.keras.backend.epsilon()))
+# def euclidean_distance(vects):
+#     """Find the Euclidean distance between two vectors.
+#     Arguments:
+#         vects: List containing two tensors of same length.
+#     Returns:
+#         Tensor containing euclidean distance
+#         (as floating point value) between vectors.
+#     """
+#     from tensorflow.keras.backend import epsilon
+#     from tensorflow.math import reduce_sum, square, maximum, sqrt
+#     x, y = vects
+#     sum_square = reduce_sum(square(x - y), axis=1, keepdims=True)
+#     return sqrt(maximum(sum_square, epsilon()))
 
 
 input_size = 224
@@ -332,7 +334,10 @@ input_2 = layers.Input((input_size, input_size, 3))
 tower_1 = embedding_network(input_1)
 tower_2 = embedding_network(input_2)
 
-merge_layer = layers.Lambda(euclidean_distance)([tower_1, tower_2])
+# merge_layer = layers.Lambda(euclidean_distance)([tower_1, tower_2])
+merge_layer = layers.Lambda(lambda x: keras.backend.sum(keras.backend.abs(x), axis=-1, keepdims=True),
+        name='euclidean')([tower_1, tower_2])
+
 normal_layer = tf.keras.layers.BatchNormalization()(merge_layer)
 output_layer = layers.Dense(1, activation="sigmoid")(normal_layer)
 siamese = keras.Model(inputs=[input_1, input_2], outputs=output_layer)
@@ -373,12 +378,30 @@ def loss(margin=1):
     return contrastive_loss
 
 
+def contrastive_loss(y_true, y_pred):
+    """Calculates the constrastive loss.
+    Arguments:
+        y_true: List of labels, each label is of type float32.
+        y_pred: List of predictions of same length as of y_true,
+                each label is of type float32.
+    Returns:
+        A tensor containing constrastive loss as floating point value.
+    """
+    margin=1
+    square_pred = tf.math.square(y_pred)
+    margin_square = tf.math.square(tf.math.maximum(margin - (y_pred), 0))
+    return tf.math.reduce_mean(
+        (1 - y_true) * square_pred + (y_true) * margin_square
+    )
+
+
+
 """
 ## Compile the model with the contrastive loss
 """
 
 # siamese.compile(loss=loss(margin=margin), optimizer="RMSprop", metrics=["accuracy"])
-siamese.compile(loss=loss(margin=margin), optimizer="Adam", metrics=["accuracy"])
+siamese.compile(loss=contrastive_loss, optimizer="Adam", metrics=["accuracy"])
 siamese.summary()
 
 
@@ -386,7 +409,7 @@ siamese.summary()
 ## Train the model
 """
 first_run = False
-epochs = 5
+epochs = 1
 with open(Path("../../data/splited_voiced/val/voiced_pairs_00002.pickled"), "rb") as f:
     data = pickle.load(f)
     pairs_val = np.asarray(data["data"])
@@ -396,12 +419,15 @@ x_val_2 = pairs_val[:, 1]
 for train_dataset_path in Path("../../data/splited_voiced/train").glob("*.pickled"):
     print(f"Training dataset: {train_dataset_path}")
     if first_run:
-        siamese = tf.keras.models.load_model("./siamese_tf")
+        siamese = tf.keras.models.load_model("./siamese_tf", custom_objects=({
+            "contrastive_loss": contrastive_loss
+        }))
+
     with open(train_dataset_path, "rb") as f:
         data = pickle.load(f)
         pairs_train = np.asarray(data["data"])
         labels_train = np.asarray(data["labels"], dtype=np.float32)
-
+    first_run = True
     #
     x_train_1 = pairs_train[:, 0]  # x_train_1.shape is (60000, 28, 28)
     x_train_2 = pairs_train[:, 1]
