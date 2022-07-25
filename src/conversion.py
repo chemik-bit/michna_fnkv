@@ -12,10 +12,10 @@ from utilities.converters import stereo2mono, wav2spectrogram, txt2wav, rename_v
 #                           RENAME VOICED                              #
 ########################################################################
 
-SOURCE_PATH = Path("../data/voiced")
-DESTINATION_PATH = Path("../data/voiced_renamed")
-
-rename_voiced(SOURCE_PATH, DESTINATION_PATH)
+# SOURCE_PATH = Path("../data/voiced")
+# DESTINATION_PATH = Path("../data/voiced_renamed")
+#
+# rename_voiced(SOURCE_PATH, DESTINATION_PATH)
 
 ########################################################################
 #                           TXT to WAV                                 #
@@ -25,7 +25,7 @@ DESTINATION_PATH = Path("../data/voiced_renamed/spectrograms")
 for sound_file in SOURCE_PATH.glob("*.txt"):
     start = timer()
 
-    txt2wav(sound_file, SOURCE_PATH, chunks=5)
+    txt2wav(sound_file, SOURCE_PATH, chunks=10)
 
     end = timer()
     print(f"{sound_file.name} conversion: {end-start:.2f} s")

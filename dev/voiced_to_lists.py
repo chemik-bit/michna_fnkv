@@ -4,8 +4,8 @@ import random
 
 # path to voiced database
 voiced_path = Path("../data/voiced_renamed/spectrograms")
-test_sample_size = 80
-validation_sample_size = 80
+test_sample_size = 100
+validation_sample_size = 100
 # list with paths to wav files
 voiced_spectrograms = []
 # list with wav file status (healthy/nonhealthy)

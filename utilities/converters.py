@@ -10,6 +10,7 @@ import numpy as np
 import shutil
 from timeit import default_timer as timer
 
+
 def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length: int):
     """
     Converts sound file (sorce_path) to its spectrogram and save it to destination_path folder.

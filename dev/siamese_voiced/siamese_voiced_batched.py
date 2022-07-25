@@ -37,7 +37,7 @@ from tensorflow.math import reduce_sum, square, maximum, sqrt
 """
 
 epochs = 100
-batch_size = 4
+batch_size = 50
 margin = 1  # Margin for constrastive loss.
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -293,7 +293,7 @@ def euclidean_distance_output_shape(shapes):
     shape1, shape2 = shapes
     return (shape1[0], 1)
 
-input_size = 224
+input_size = 256 #224
 
 
 input = layers.Input((input_size, input_size, 3))
@@ -324,9 +324,11 @@ x = layers.Flatten()(x)
 # x = layers.Dense(256, activation="tanh")(x)
 # x = tf.keras.layers.BatchNormalization()(x)
 # x = layers.Dense(10, activation="tanh")(x)
-#x = layers.Dense(4096, activation="relu")(x)
-x = layers.Dense(1024, activation="relu")(x)
-x = layers.Dense(1024, activation="relu")(x)
+x = layers.Dense(4096, activation="relu")(x)
+x = layers.Dense(4096, activation="relu")(x)
+x = layers.Dense(4096, activation="relu")(x)
+#x = layers.Dense(1024, activation="relu")(x)
+#x = layers.Dense(1024, activation="relu")(x)
 embedding_network = keras.Model(input, x)
 
 
@@ -409,7 +411,7 @@ def contrastive_loss(y_true, y_pred):
 """
 
 # siamese.compile(loss=loss(margin=margin), optimizer="RMSprop", metrics=["accuracy"])
-siamese.compile(loss=contrastive_loss, optimizer="Adam", metrics=["accuracy"])
+siamese.compile(loss=contrastive_loss, optimizer="RMSprop", metrics=["accuracy"])
 siamese.summary()
 siamese.save("./siamese_tf")
 siamese = tf.keras.models.load_model("./siamese_tf", custom_objects=({
@@ -422,7 +424,7 @@ siamese = tf.keras.models.load_model("./siamese_tf", custom_objects=({
 """
 first_run = False
 epochs = 5
-with open(Path("../../data/splited_voiced/val/voiced_pairs_00002.pickled"), "rb") as f:
+with open(Path("../../data/splited_voiced/val/voiced_pairs_00001.pickled"), "rb") as f:
     data = pickle.load(f)
     pairs_val = np.asarray(data["data"])
     labels_val = np.asarray(data["labels"], dtype=np.float32)
