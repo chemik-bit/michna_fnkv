@@ -74,8 +74,8 @@ def rename_voiced(voiced_path: Path, destination_path: Path):
                             destination_path.joinpath(processed_filename + "_healthy.txt"))
             else:
                 destination_filename = processed_filename + "_nonhealthy.txt"
-            shutil.copy(voiced_path.joinpath(processed_filename + ".txt"),
-                        destination_path.joinpath(destination_filename))
+                shutil.copy(voiced_path.joinpath(processed_filename + ".txt"),
+                            destination_path.joinpath(destination_filename))
 
 ########################################################################
 #                           RENAME VOICED                              #

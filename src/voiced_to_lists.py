@@ -1,11 +1,15 @@
+"""
+Script that creates lists with filenames and their respective labels. Those lists are pickled.
+Should be used to create train, validation and test sets.
+"""
 from pathlib import Path
 import pickle
 import random
 
 # path to voiced database
 voiced_path = Path("../data/voiced_renamed/spectrograms")
-test_sample_size = 100
-validation_sample_size = 100
+test_sample_size = 100  # number of files
+validation_sample_size = 100  # number of files
 # list with paths to wav files
 voiced_spectrograms = []
 # list with wav file status (healthy/nonhealthy)
@@ -19,9 +23,11 @@ for spectrogram_file in spectograms_list:
         voiced_target.append(0)
     else:
         voiced_target.append(1)
+
+# sanity check print
 print(voiced_spectrograms)
 print(voiced_target)
-# check print
+
 print("test ", len(voiced_target[-(test_sample_size + validation_sample_size):-validation_sample_size]))
 print("train ", len(voiced_target[:-(test_sample_size + validation_sample_size)]))
 print("validation ", len(voiced_target[-validation_sample_size:]))

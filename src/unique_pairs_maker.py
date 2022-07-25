@@ -1,3 +1,9 @@
+"""
+Script to make all possible unique pairs for siamese network.
+It needs:
+1) path to spectrogram images folder
+2) list with image labels (0/1)
+"""
 from pathlib import Path
 import pickle
 import random
@@ -66,7 +72,7 @@ def make_pairs(image_paths: Path, image_labels: list, desired_image_size: tuple,
     temp = list(zip(image_pairs, image_labels))
     random.shuffle(temp)
     res1, res2 = zip(*temp)
-    # res1 and res2 come out as tuples, and so must be converted to lists.
+
     image_pairs, image_labels = list(res1), list(res2)
 
     tf_dict = {"data": [], "labels": []}
@@ -87,6 +93,7 @@ def make_pairs(image_paths: Path, image_labels: list, desired_image_size: tuple,
         #pickle.dump(image_labels, f)
         pickle.dump(tf_dict, f)
 
+# TODO difference for CentoOS
 pickled_sets = {"train": (Path("../data/voiced_train.pickled"), Path("../data/splited_voiced/train"), 20),
                 "validation": (Path("../data/voiced_validation.pickled"),
                                Path("../data/splited_voiced/val"), 4),

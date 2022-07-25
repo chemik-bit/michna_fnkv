@@ -2,6 +2,8 @@
 Helper module..
 1) It converts soundfiles from stereo to mono
 2) It converts mono sound files to spectrograms
+3) It renames VOICED DB so each txt filename contains label (healthy/nonhealthy)
+4) It converts VOICED txt data files to WAV
 """
 from pathlib import Path
 from timeit import default_timer as timer
