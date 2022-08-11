@@ -1,23 +1,4 @@
 """
-Title: Image similarity estimation using a Siamese Network with a contrastive loss
-Author: Mehdi
-Date created: 2021/05/06
-Last modified: 2021/05/06
-Description: Similarity learning using a siamese network trained with a contrastive loss.
-"""
-
-"""
-## Introduction
-[Siamese Networks](https://en.wikipedia.org/wiki/Siamese_neural_network)
-are neural networks which share weights between two or more sister networks,
-each producing embedding vectors of its respective inputs.
-In supervised similarity learning, the networks are then trained to maximize the
-contrast (distance) between embeddings of inputs of different classes, while minimizing the distance between
-embeddings of similar classes, resulting in embedding spaces that reflect
-the class segmentation of the training inputs.
-"""
-
-"""
 ## Setup
 """
 from pathlib import Path
@@ -29,45 +10,23 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
 import pickle
-from datasets import Dataset
+
 from tensorflow.keras.backend import epsilon
 from tensorflow.math import reduce_sum, square, maximum, sqrt
 import cv2
 """
 ## Hyperparameters
 """
-input_size = 280 #272 TOP
+input_size = 272 #272 TOP
 batch_size = 50
 first_run = False
 epochs = 5
 margin = 1  # Margin for constrastive loss.
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-"""
-## Load the MNIST dataset
-"""
-
-# Provided two tensors t1 and t2
-# Euclidean distance = sqrt(sum(square(t1-t2)))
-def euclidean_distance(vects):
-    """Find the Euclidean distance between two vectors.
-    Arguments:
-        vects: List containing two tensors of same length.
-    Returns:
-        Tensor containing euclidean distance
-        (as floating point value) between vectors.
-    """
-    from tensorflow.keras.backend import epsilon
-    from tensorflow.math import reduce_sum, square, maximum, sqrt
-    x, y = vects
-    sum_square = reduce_sum(square(x - y), axis=1, keepdims=True)
-    return sqrt(maximum(sum_square, epsilon()))
-
-def euclidean_distance_output_shape(shapes):
-    shape1, shape2 = shapes
-    return (shape1[0], 1)
 
 
+# MODEL
 input = layers.Input((input_size, input_size, 3))
 x = tf.keras.layers.BatchNormalization()(input)
 x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x) # 8
@@ -98,7 +57,6 @@ x = layers.Dense(4096, activation="relu")(x)
 x = layers.Dense(4096, activation="relu")(x)
 embedding_network = keras.Model(input, x)
 
-
 input_1 = layers.Input((input_size, input_size, 3))
 input_2 = layers.Input((input_size, input_size, 3))
 
@@ -111,12 +69,9 @@ normal_layer = tf.keras.layers.BatchNormalization()(merge_layer)
 output_layer = layers.Dense(1, activation="sigmoid")(normal_layer)
 siamese = keras.Model(inputs=[input_1, input_2], outputs=output_layer)
 
-
 """
 ## Define the constrastive Loss
 """
-
-
 def loss(margin=1):
     """Provides 'constrastive_loss' an enclosing scope with variable 'margin'.
     Arguments:
@@ -125,9 +80,6 @@ def loss(margin=1):
     Returns:
         'constrastive_loss' function with data ('margin') attached.
     """
-
-    # Contrastive loss = mean( (1-true_value) * square(prediction) +
-    #                         true_value * square( max(margin-prediction, 0) ))
     def contrastive_loss(y_true, y_pred):
         """Calculates the constrastive loss.
         Arguments:
@@ -164,23 +116,29 @@ def contrastive_loss(y_true, y_pred):
     )
 
 
-
 """
-## Compile the model with the contrastive loss
+Compile the model with the contrastive loss
 """
 siamese.compile(loss=contrastive_loss, optimizer="RMSprop", metrics=["accuracy"])
 siamese.summary()
 siamese.save("./siamese_tf")
 siamese = tf.keras.models.load_model("./siamese_tf", custom_objects=({
             "contrastive_loss": contrastive_loss,
-            "euclidean_distance": euclidean_distance,
-            "euclidean_distance_output_shape": euclidean_distance_output_shape
+            # "euclidean_distance": euclidean_distance,
+            # "euclidean_distance_output_shape": euclidean_distance_output_shape
         }))
+
+checkpoint_filepath = './siamese_tf_checkpoint'
+model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+    filepath=checkpoint_filepath,
+    save_weights_only=False,
+    monitor='val_accuracy',
+    mode='min',
+    save_best_only=True)
+
 """
 ## Train the model
 """
-
-
 with open(Path("../../data/splited_voiced/val/voiced_pairs_paths_00001.pickled"), "rb") as f:
     data = pickle.load(f)
     pairs_val_paths = data["data"]
@@ -202,7 +160,6 @@ for train_dataset_path in Path("../../data/splited_voiced/train").glob("voiced_p
     if first_run:
         siamese = tf.keras.models.load_model("./siamese_tf", custom_objects=({
             "contrastive_loss": contrastive_loss,
-            "euclidean_distance": euclidean_distance
         }))
 
     with open(train_dataset_path, "rb") as f:
@@ -225,10 +182,9 @@ for train_dataset_path in Path("../../data/splited_voiced/train").glob("voiced_p
         [x_train_1, x_train_2], labels_train,
         validation_data=([x_val_1, x_val_2], labels_val),
         batch_size=batch_size,
-        epochs=epochs,
+        epochs=epochs, callbacks=[model_checkpoint_callback]
     )
     siamese.save("./siamese_tf")
-
 
 """
 ## Visualize results
