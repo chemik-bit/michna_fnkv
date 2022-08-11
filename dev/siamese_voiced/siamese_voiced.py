@@ -285,7 +285,6 @@ def euclidean_distance(vects):
     sum_square = tf.math.reduce_sum(tf.math.square(x - y), axis=1, keepdims=True)
     return tf.math.sqrt(tf.math.maximum(sum_square, tf.keras.backend.epsilon()))
 
-
 input = layers.Input((input_size, input_size, 3))
 x = tf.keras.layers.BatchNormalization()(input)
 x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x) # 8
