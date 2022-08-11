@@ -8,7 +8,9 @@ from scipy import signal
 from scipy.io import wavfile
 import numpy as np
 import shutil
-from timeit import default_timer as timer
+
+import cv2
+#from timeit import default_timer as timer
 
 
 def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length: int):
@@ -45,6 +47,14 @@ def stereo2mono(source_path: Path, destination_path: Path):
 
 
 def txt2wav(source_path: Path, destination_path: Path, sample_rate=8000, chunks=1):
+    """
+    Converts voiced db, where data files are text files, cointaining wav sample values.
+    :param source_path: path to voiced database txt files
+    :param destination_path: path to destination folder
+    :param sample_rate: target wav sample rate (8000 Hz for voiced)
+    :param chunks: number of chunks -> each txt is divided to multiple wav files
+    :return: None
+    """
     txt_data = np.loadtxt(source_path)
     wav_chunks = np.array_split(txt_data, chunks)
     if len(wav_chunks[:-1]) != len(wav_chunks[0]):
@@ -52,7 +62,7 @@ def txt2wav(source_path: Path, destination_path: Path, sample_rate=8000, chunks=
         wav_chunks.pop(-1)
 
     for idx, wav_chunk in enumerate(wav_chunks):
-        chunk_path = destination_path.joinpath(f"{source_path.stem}_ {idx:05d}.wav")
+        chunk_path = destination_path.joinpath(f"{source_path.stem}_{idx:05d}.wav")
         wavfile.write(filename=chunk_path, rate=sample_rate, data=wav_chunk)
 
 
@@ -77,47 +87,16 @@ def rename_voiced(voiced_path: Path, destination_path: Path):
                 shutil.copy(voiced_path.joinpath(processed_filename + ".txt"),
                             destination_path.joinpath(destination_filename))
 
-########################################################################
-#                           RENAME VOICED                              #
-########################################################################
-#
-# SOURCE_PATH = Path("../data/voiced")
-# DESTINATION_PATH = Path("../data/voiced_renamed")
-#
-# rename_voiced(SOURCE_PATH, DESTINATION_PATH)
-#
-# ########################################################################
-# #                           TXT to WAV                                 #
-# ########################################################################
-# SOURCE_PATH = Path("../data/voiced_renamed")
-# DESTINATION_PATH = Path("../data/voiced_renamed/spectrograms")
-# for sound_file in SOURCE_PATH.glob("*.txt"):
-#     start = timer()
-#
-#     txt2wav(sound_file, SOURCE_PATH, chunks=8)
-#
-#     end = timer()
-#     print(f"{sound_file.name} conversion: {end-start:.2f} s")
-#
-# ########################################################################
-# #                        WAV to MONO WAV                               #
-# ########################################################################
-#
-# # SOURCE_PATH = Path("../data/voiced")
-# # DESTINATION_PATH = Path("../data/voiced/mono")
-# # # convert stereo soundfiles to mono
-# # for sound_file in SOURCE_PATH.glob("*.wav"):
-# #     print(sound_file.resolve())
-# #     stereo2mono(sound_file, DESTINATION_PATH)
-#
-# ########################################################################
-# #                        WAV to SPECTROGRAM                             #
-# ########################################################################
-# SOURCE_PATH = Path("../data/voiced_renamed")
-# DESTINATION_PATH = Path("../data/voiced_renamed/spectrograms")
-# for sound_file in SOURCE_PATH.glob("*.wav"):
-#     start = timer()
-#     print(f"converting {sound_file.name}")
-#     wav2spectrogram(sound_file, DESTINATION_PATH, 256)
-#     end = timer()
-#     print(f"{sound_file.name} conversion: {end-start:.2f} s")
+
+def path2image(paths: list, size: tuple):
+    """
+    Load images given by paths and resize them to desired size
+    :param paths: list with pathlike objects to images
+    :param size: tuple with desired image size
+    :return: list with loaded and resized images
+    """
+    converted_images = []
+    for image_path in paths:
+        image = cv2.imread(image_path)
+        converted_images.append(cv2.resize(image, size, interpolation=cv2.INTER_AREA))
+    return converted_images

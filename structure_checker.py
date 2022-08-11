@@ -1,30 +1,22 @@
 """
 Project directories and files checker.
 """
-from pathlib import Path
+import os
+from colorama import Fore, Style
+
+if os.name == "nt":
+    from config import WINDOWS_PATHS as PATHS
+else:
+    from config import CENTOS_PATHS as PATHS
 
 
 def check_consistency():
     """
-    Fast checker of project directory structure. Expected structure:
-    ./data (data folder)
-    ./data/sound_files (folder with sound files)
-    ./data/mono (folder with mono sound files)
-    ./data/spectrograms (folder with spectrograms)
-    ./data/voiced (folder fo Voiced database files)
-    ./data/database.db (database with patients information)
-    (presence of files in ./data/sound_files is also checked)
+    Fast checker of project directory structure. Expected structure is given by PATHS dictionary
     :return: None
     """
     consistency = True
-    folders_to_check = {"data": Path("./data"),
-                        "sound_files": Path("./data/sound_files"),
-                        "mono": Path("./data/mono"),
-                        "voiced": Path("./data/voiced"),
-                        "spectrograms": Path("./data/spectrograms")}
-
-    for to_check in folders_to_check.items():
-
+    for to_check in PATHS.items():
         if to_check[1].exists():
             print(f"{to_check[1]} ...... {to_check[0]} folder - OK")
         else:
@@ -33,23 +25,23 @@ def check_consistency():
             consistency = False
 
     # check db file
-    if folders_to_check["data"].joinpath("database.db").exists():
+    if PATHS["PATH_DATA"].joinpath("database.db").exists():
         print("Database (database.db) .......... OK")
     else:
         print("Database missing in data folder.. ")
         consistency = False
 
     # check sound_files folder is empty
-    if not any(folders_to_check["sound_files"].iterdir()):
-        print(f'{folders_to_check["sound_files"].resolve()} folder is empty')
+    if not any(PATHS["PATH_SOUNDFILES"].iterdir()):
+        print(f'{PATHS["PATH_SOUNDFILES"].resolve()} folder is empty')
         consistency = False
     else:
         print("Files in sound_files .......... OK")
 
     if consistency:
-        print("Project structure .......... OK")
+        print(f"{Fore.LIGHTGREEN_EX}Project structure .......... OK{Style.RESET_ALL}")
     else:
-        print("Inconsistent project. Check missing parts.")
+        print(f"{Fore.RED}Inconsistent project. Check missing parts.{Style.RESET_ALL}")
 
 
 if __name__ == "__main__":

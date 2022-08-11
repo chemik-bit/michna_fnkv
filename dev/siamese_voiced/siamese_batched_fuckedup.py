@@ -14,6 +14,8 @@ import pickle
 from tensorflow.keras.backend import epsilon
 from tensorflow.math import reduce_sum, square, maximum, sqrt
 import cv2
+
+from utilities.converters import path2image
 """
 ## Hyperparameters
 """
@@ -29,7 +31,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 # MODEL
 input = layers.Input((input_size, input_size, 3))
 x = tf.keras.layers.BatchNormalization()(input)
-x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x) # 8
+x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x)
 x = layers.Conv2D(64, (3, 3), activation="relu", padding="same", strides=2)(x)
 x = layers.MaxPooling2D(pool_size=(2, 2))(x)
 
@@ -144,11 +146,7 @@ with open(Path("../../data/splited_voiced/val/voiced_pairs_paths_00001.pickled")
     pairs_val_paths = data["data"]
     pairs_val = []
     for item in pairs_val_paths:
-        image1 = cv2.imread(item[0])
-        image1 = cv2.resize(image1, (input_size, input_size), interpolation=cv2.INTER_AREA)
-        image2 = cv2.imread(item[1])
-        image2 = cv2.resize(image2, (input_size, input_size), interpolation=cv2.INTER_AREA)
-        pairs_val.append([image1, image2])
+        pairs_val.append(path2image(item, (input_size, input_size)))
     labels_val = np.asarray(data["labels"], dtype=np.float32)
     pairs_val = np.asarray(pairs_val)
 
@@ -168,11 +166,7 @@ for train_dataset_path in Path("../../data/splited_voiced/train").glob("voiced_p
         labels_train = np.asarray(data["labels"], dtype=np.float32)
         pairs_train = []
         for item in pairs_train_paths:
-            image1 = cv2.imread(item[0])
-            image1 = cv2.resize(image1, (input_size, input_size), interpolation=cv2.INTER_AREA)
-            image2 = cv2.imread(item[1])
-            image2 = cv2.resize(image2, (input_size, input_size), interpolation=cv2.INTER_AREA)
-            pairs_train.append([image1, image2])
+            pairs_train.append(path2image(item, (input_size, input_size)))
     first_run = True
     pairs_train = np.asarray(pairs_train)
     x_train_1 = pairs_train[:, 0]  # x_train_1.shape is (60000, 28, 28)
@@ -227,11 +221,7 @@ for test_dataset_path in Path("../../data/splited_voiced/test").glob("voiced_pai
         pairs_test_paths = np.asarray(pickle.load(f)["data"])
         pairs_test = []
         for item in pairs_test_paths:
-            image1 = cv2.imread(item[0])
-            image1 = cv2.resize(image1, (input_size, input_size), interpolation=cv2.INTER_AREA)
-            image2 = cv2.imread(item[1])
-            image2 = cv2.resize(image2, (input_size, input_size), interpolation=cv2.INTER_AREA)
-            pairs_test.append([image1, image2])
+            pairs_test.append(path2image(item, (input_size, input_size)))
         labels_test = np.asarray(pickle.load(f)["labels"], dtype=np.float32)
         pairs_test = np.asarray(pairs_test)
     #
@@ -245,5 +235,5 @@ for test_dataset_path in Path("../../data/splited_voiced/test").glob("voiced_pai
 ## Visualize the predictions
 """
 
-predictions = siamese.predict([x_test_1, x_test_2], labels_test)
+# predictions = siamese.predict([x_test_1, x_test_2], labels_test)
 # visualize(pairs_test, labels_test, to_show=3, predictions=predictions, test=True)
