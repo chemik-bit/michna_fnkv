@@ -294,7 +294,7 @@ def euclidean_distance_output_shape(shapes):
     shape1, shape2 = shapes
     return (shape1[0], 1)
 
-input_size = 280 #224
+input_size = 272 #224
 
 
 input = layers.Input((input_size, input_size, 3))
@@ -414,7 +414,7 @@ def contrastive_loss(y_true, y_pred):
 # siamese.compile(loss=loss(margin=margin), optimizer="RMSprop", metrics=["accuracy"])
 siamese.compile(loss=contrastive_loss, optimizer="RMSprop", metrics=["accuracy"])
 siamese.summary()
-siamese.save("./siamese_tf")
+# siamese.save("./siamese_tf")
 siamese = tf.keras.models.load_model("./siamese_tf", custom_objects=({
             "contrastive_loss": contrastive_loss,
             "euclidean_distance": euclidean_distance,
@@ -442,7 +442,7 @@ with open(Path("../../data/splited_voiced/val/voiced_pairs_paths_00001.pickled")
 x_val_1 = pairs_val[:, 0]  # x_val_1.shape = (60000, 28, 28)
 print("x_val_1 shape: ",x_val_1.shape)
 x_val_2 = pairs_val[:, 1]
-for train_dataset_path in Path("../../data/splited_voiced/train").glob("voiced_pairs_path*.pickled"):
+for train_dataset_path in Path("../../data/splited_voiced/train").glob("voiced_pairs_paths*.pickled"):
     print(f"Training dataset: {train_dataset_path}")
     if first_run:
         siamese = tf.keras.models.load_model("./siamese_tf", custom_objects=({

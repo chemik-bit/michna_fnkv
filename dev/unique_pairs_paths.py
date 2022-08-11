@@ -76,6 +76,7 @@ def make_pairs(image_paths: Path, image_labels: list, desired_image_size: tuple,
     image_pairs, image_labels = list(res1), list(res2)
 
     tf_dict = {"data": [], "labels": []}
+
     for idx, image_pair in enumerate(image_pairs):
         tf_dict["data"].append(image_pair)
         tf_dict["labels"].append(image_labels[idx])
@@ -87,6 +88,7 @@ def make_pairs(image_paths: Path, image_labels: list, desired_image_size: tuple,
                 pickle.dump(tf_dict, f)
             print(f"Saving to {path_to_save_pickle}")
             tf_dict = {"data": [], "labels": []}
+
 
     with open(path_to_save.joinpath("voiced_pairs.pickled"), "wb") as f:
         #pickle.dump(image_pairs, f)
@@ -105,7 +107,7 @@ for item in pickled_sets.values():
         image_paths = pickle.load(f)
         image_labels = pickle.load(f)
 
-    make_pairs(image_paths, image_labels, (312, 312), item[1], item[2]) # 224
+    make_pairs(image_paths, image_labels, (272, 272), item[1], item[2]) # 224
     # with open(item[1], "rb") as f:
     #     # pairs = pickle.load(f)
     #     # labels = pickle.load(f)
