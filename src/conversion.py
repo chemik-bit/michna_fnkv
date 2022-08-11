@@ -14,10 +14,10 @@ from utilities.converters import stereo2mono, wav2spectrogram, txt2wav, rename_v
 #                           RENAME VOICED                              #
 ########################################################################
 
-# SOURCE_PATH = Path("../data/voiced")
-# DESTINATION_PATH = Path("../data/voiced_renamed")
-#
-# rename_voiced(SOURCE_PATH, DESTINATION_PATH)
+SOURCE_PATH = Path("../data/voiced")
+DESTINATION_PATH = Path("../data/voiced_renamed")
+
+rename_voiced(SOURCE_PATH, DESTINATION_PATH)
 
 ########################################################################
 #                           TXT to WAV                                 #

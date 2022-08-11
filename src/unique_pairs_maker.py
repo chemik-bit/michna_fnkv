@@ -105,7 +105,7 @@ for item in pickled_sets.values():
         image_paths = pickle.load(f)
         image_labels = pickle.load(f)
 
-    make_pairs(image_paths, image_labels, (256, 256), item[1], item[2]) # 224
+    make_pairs(image_paths, image_labels, (272, 272), item[1], item[2]) # 224
     # with open(item[1], "rb") as f:
     #     # pairs = pickle.load(f)
     #     # labels = pickle.load(f)

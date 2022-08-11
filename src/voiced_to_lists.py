@@ -8,14 +8,14 @@ import random
 
 # path to voiced database
 voiced_path = Path("../data/voiced_renamed/spectrograms")
-test_sample_size = 100  # number of files
-validation_sample_size = 100  # number of files
+test_sample_size = 300  # number of files
+validation_sample_size = 300  # number of files
 # list with paths to wav files
 voiced_spectrograms = []
 # list with wav file status (healthy/nonhealthy)
 voiced_target = []
 spectograms_list = list(voiced_path.glob("*.png"))
-random.shuffle(spectograms_list)
+# random.shuffle(spectograms_list)
 for spectrogram_file in spectograms_list:
     # append path to wav file
     voiced_spectrograms.append(spectrogram_file.resolve())
