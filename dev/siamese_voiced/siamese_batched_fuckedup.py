@@ -19,7 +19,7 @@ from utilities.converters import path2image
 """
 ## Hyperparameters
 """
-input_size = 272 #272 TOP
+input_size = 232 #272 TOP
 batch_size = 50
 first_run = False
 epochs = 5
@@ -141,7 +141,7 @@ model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
 """
 ## Train the model
 """
-with open(Path("../../data/splited_voiced/val/voiced_pairs_paths_00001.pickled"), "rb") as f:
+with open(Path("../../data/dataset/val/voiced_pairs_paths_00001.pickled"), "rb") as f:
     data = pickle.load(f)
     pairs_val_paths = data["data"]
     pairs_val = []
@@ -153,7 +153,7 @@ with open(Path("../../data/splited_voiced/val/voiced_pairs_paths_00001.pickled")
 x_val_1 = pairs_val[:, 0]  # x_val_1.shape = (60000, 28, 28)
 x_val_2 = pairs_val[:, 1]
 
-for train_dataset_path in Path("../../data/splited_voiced/train").glob("voiced_pairs_path*.pickled"):
+for train_dataset_path in Path("../../data/dataset/train").glob("voiced_pairs_path*.pickled"):
     print(f"Training dataset: {train_dataset_path}")
     if first_run:
         siamese = tf.keras.models.load_model("./siamese_tf", custom_objects=({
@@ -215,7 +215,7 @@ plt_metric(history=history.history, metric="loss", title="Constrastive Loss")
 ## Evaluate the model
 """
 
-for test_dataset_path in Path("../../data/splited_voiced/test").glob("voiced_pairs_path*.pickled"):
+for test_dataset_path in Path("../../data/dataset/test").glob("voiced_pairs_path*.pickled"):
     print(f"Testing dataset: {test_dataset_path}")
     with open(test_dataset_path, "rb") as f:
         pairs_test_paths = np.asarray(pickle.load(f)["data"])

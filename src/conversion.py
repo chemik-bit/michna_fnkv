@@ -10,6 +10,7 @@ import os
 import sys
 from timeit import default_timer as timer
 from utilities.converters import stereo2mono, wav2spectrogram, txt2wav, rename_voiced
+from utilities.helpers import clear_folder
 
 if os.name == "nt":
     from config import WINDOWS_PATHS as PATHS
@@ -21,10 +22,10 @@ os.chdir(sys.path[1])
 #                           RENAME VOICED                              #
 ########################################################################
 
-SOURCE_PATH = PATHS["PATH_VOICED"]
-DESTINATION_PATH = PATHS["PATH_VOICED_RENAMED"]
-print(SOURCE_PATH.resolve())
-rename_voiced(SOURCE_PATH, DESTINATION_PATH)
+# SOURCE_PATH = PATHS["PATH_VOICED"]
+# DESTINATION_PATH = PATHS["PATH_VOICED_RENAMED"]
+# print(SOURCE_PATH.resolve())
+# rename_voiced(SOURCE_PATH, DESTINATION_PATH)
 
 ########################################################################
 #                           TXT to WAV                                 #
@@ -32,11 +33,11 @@ rename_voiced(SOURCE_PATH, DESTINATION_PATH)
 SOURCE_PATH = PATHS["PATH_VOICED_RENAMED"]
 DESTINATION_PATH = PATHS["PATH_VOICED_WAV"]
 
+clear_folder(DESTINATION_PATH)
+
 for sound_file in SOURCE_PATH.glob("*.txt"):
     start = timer()
-
-    txt2wav(sound_file, DESTINATION_PATH, chunks=10)
-
+    txt2wav(sound_file, DESTINATION_PATH, chunks=6)
     end = timer()
     print(f"{sound_file.name} conversion: {end-start:.2f} s")
 
@@ -56,6 +57,9 @@ for sound_file in SOURCE_PATH.glob("*.txt"):
 ########################################################################
 SOURCE_PATH = PATHS["PATH_VOICED_WAV"]
 DESTINATION_PATH = PATHS["PATH_SPECTROGRAMS"]
+
+clear_folder(DESTINATION_PATH)
+
 for sound_file in SOURCE_PATH.glob("*.wav"):
     start = timer()
     print(f"converting {sound_file.name}")
