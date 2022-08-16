@@ -11,6 +11,7 @@ import sys
 import os
 import itertools
 
+from utilities.helpers import clear_folder
 
 def make_pairs(images_paths: Path, path_to_save: Path):
     """
@@ -83,5 +84,5 @@ pickled_sets = {"train": (PATHS["PATH_DATASET_TRAIN"],
 for item in pickled_sets.values():
     with open(item[1], "rb") as f:
         image_paths = pickle.load(f)
-
+    clear_folder(item[0])
     make_pairs(image_paths, item[0])
