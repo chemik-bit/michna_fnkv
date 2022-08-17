@@ -1,30 +1,38 @@
 """
 ## Setup
 """
+import sys
+import os
+import pickle
 from pathlib import Path
-import random
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
 from tensorflow.keras import layers
-import matplotlib.pyplot as plt
-import pickle
-
 from tensorflow.keras.backend import epsilon
 from tensorflow.math import reduce_sum, square, maximum, sqrt
-import cv2
+
+import matplotlib.pyplot as plt
 
 from utilities.converters import path2image
+
+
+if os.name == "nt":
+    from config import WINDOWS_PATHS as PATHS
+else:
+    from config import CENTOS_PATHS as PATHS
+os.chdir(sys.path[1])
+
 """
 ## Hyperparameters
 """
-input_size = 232 #272 TOP
-batch_size = 50
+input_size = 224 #272 TOP
+batch_size = 16
 first_run = False
 epochs = 5
 margin = 1  # Margin for constrastive loss.
-import os
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
@@ -141,7 +149,7 @@ model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
 """
 ## Train the model
 """
-with open(Path("../../data/dataset/val/voiced_pairs_paths_00001.pickled"), "rb") as f:
+with open(PATHS["PATH_DATASET_VAL"].joinpath("voiced_pairs.pickled"), "rb") as f:
     data = pickle.load(f)
     pairs_val_paths = data["data"]
     pairs_val = []
@@ -153,7 +161,7 @@ with open(Path("../../data/dataset/val/voiced_pairs_paths_00001.pickled"), "rb")
 x_val_1 = pairs_val[:, 0]  # x_val_1.shape = (60000, 28, 28)
 x_val_2 = pairs_val[:, 1]
 
-for train_dataset_path in Path("../../data/dataset/train").glob("voiced_pairs_path*.pickled"):
+for train_dataset_path in PATHS["PATH_DATASET_TRAIN"].glob("voiced_pairs_path*.pickled"):
     print(f"Training dataset: {train_dataset_path}")
     if first_run:
         siamese = tf.keras.models.load_model("./siamese_tf", custom_objects=({

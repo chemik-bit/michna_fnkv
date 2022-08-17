@@ -11,8 +11,8 @@ else:
     from config import CENTOS_PATHS as PATHS
 os.chdir(sys.path[1])
 
-test_sample_size = 300  # number of files
-validation_sample_size = 300  # number of files
+test_sample_size = 20  # number of files
+validation_sample_size = 20  # number of files
 
 # path to voiced database
 voiced_spectrograms_path = PATHS["PATH_SPECTROGRAMS"]
