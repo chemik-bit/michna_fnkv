@@ -12,7 +12,8 @@ WINDOWS_PATHS = {
     "PATH_DATASET_TRAIN": Path("./data/dataset/train"),
     "PATH_DATASET_TEST": Path("./data/dataset/test"),
     "PATH_DATASET_VAL": Path("./data/dataset/val"),
-    "PATH_SPECTROGRAMS": Path("./data/spectrograms")
+    "PATH_SPECTROGRAMS": Path("./data/spectrograms"),
+    "PATH_EXPERIMENTS": Path("D:/siamese_runs")
 }
 
 CENTOS_PATHS = {
