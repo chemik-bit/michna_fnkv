@@ -27,7 +27,7 @@ os.chdir(sys.path[1])
 """
 ## Hyperparameters
 """
-input_size = 224 #272 TOP
+input_size = 227 #272 TOP
 batch_size = 16
 first_run = False
 epochs = 5
@@ -57,8 +57,8 @@ x = layers.MaxPooling2D(pool_size=(2, 2), padding="same", strides=2)(x)
 x = layers.Conv2D(512, (3, 3), activation="relu", padding="same")(x)
 x = layers.Conv2D(512, (3, 3), activation="relu", padding="same")(x)
 x = layers.Conv2D(512, (3, 3), activation="relu", padding="same")(x)
-
 x = layers.MaxPooling2D(pool_size=(2, 2), padding="same", strides=2)(x)
+
 # x = layers.Dropout(0.1)(x)
 
 x = layers.Flatten()(x)
