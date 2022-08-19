@@ -25,12 +25,12 @@ Hyperparameters section
 """
 MODEL_NAME = "vgg16_simplified"
 EXPERIMENT_UUID = str(uuid.uuid4())
-CHUNKS = 9
-VALIDATION_SAMPLE_SIZE = 140
+CHUNKS = 10
+VALIDATION_SAMPLE_SIZE = 160
 TEST_SAMPLE_SIZE = 0
-TRAINING_SUBSET_SIZE = 1000
-INPUT_SIZE = 224
-BATCH_SIZE = 60
+TRAINING_SUBSET_SIZE = 4000
+INPUT_SIZE = 256
+BATCH_SIZE = 50
 EPOCHS = 5
 PATH_TO_SAVE = PATHS["PATH_EXPERIMENTS"].joinpath(EXPERIMENT_UUID)
 PATH_TO_SAVE_MODEL = PATH_TO_SAVE.joinpath("model")
@@ -88,7 +88,7 @@ model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
 
 # 5. load validation set
 print("Loading validation set....")
-with open(PATHS["PATH_DATASET_VAL"].joinpath("voiced_pairs_00001.pickled"), "rb") as f:
+with open(PATHS["PATH_DATASET_VAL"].joinpath("voiced_pairs_paths_00001.pickled"), "rb") as f:
     data = pickle.load(f)
     pairs_val_paths = data["data"]
     pairs_val = []
