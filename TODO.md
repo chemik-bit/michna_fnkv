@@ -1,4 +1,3 @@
 - generování ladícího datasetu
-- udělat siamese.py (vyčistit, navázat na config.py, callbacky atp.)
 - do siamese.py přidat switch pro ladění (loading ladícího datasetu a testování funkcionality/konvergenece atp.)
 - ...
