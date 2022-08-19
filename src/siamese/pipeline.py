@@ -28,7 +28,7 @@ EXPERIMENT_UUID = str(uuid.uuid4())
 CHUNKS = 9
 VALIDATION_SAMPLE_SIZE = 140
 TEST_SAMPLE_SIZE = 0
-TRAINING_SUBSET_SIZE = 6000
+TRAINING_SUBSET_SIZE = 1000
 INPUT_SIZE = 224
 BATCH_SIZE = 60
 EPOCHS = 5
@@ -56,7 +56,8 @@ with open(PATH_TO_SAVE.joinpath("experiment_info"), "wb") as f:
     pickle.dump(experiment_info, f)
 
 # 1. rename voiced, convert it to wav and then to spectrograms
-convert_voiced(wav_chunks=CHUNKS) # 5 produce 3 spectrograms.. outer spectrograms are not used (boundary effects)
+convert_voiced(wav_chunks=CHUNKS) # 5 produce 3 spectrograms.. outer spectrograms are not used (
+# boundary effects)
 
 # 2. split spectrograms to training/validation sets.
 # !!! zkontroluj že validation_sample_size a test_sample_size jsou v násobkách wav_chunks-2 !!!!!!!!!!!
@@ -87,7 +88,7 @@ model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
 
 # 5. load validation set
 print("Loading validation set....")
-with open(PATHS["PATH_DATASET_VAL"].joinpath("voiced_pairs.pickled"), "rb") as f:
+with open(PATHS["PATH_DATASET_VAL"].joinpath("voiced_pairs_00001.pickled"), "rb") as f:
     data = pickle.load(f)
     pairs_val_paths = data["data"]
     pairs_val = []

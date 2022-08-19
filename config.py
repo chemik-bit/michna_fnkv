@@ -13,7 +13,7 @@ WINDOWS_PATHS = {
     "PATH_DATASET_TEST": Path("./data/dataset/test"),
     "PATH_DATASET_VAL": Path("./data/dataset/val"),
     "PATH_SPECTROGRAMS": Path("./data/spectrograms"),
-    "PATH_EXPERIMENTS": Path("Z:/siamese_runs")
+    "PATH_EXPERIMENTS": Path("C:/siamese_runs")
 }
 
 CENTOS_PATHS = {
