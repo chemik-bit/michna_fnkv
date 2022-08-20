@@ -25,7 +25,7 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
     sample_rate, samples = wavfile.read(source_path)
     frequencies, times, spectrogram = signal.spectrogram(samples, fs=sample_rate,
                                                          scaling="spectrum", nfft=None,
-                                                         mode="psd", noverlap=128,
+                                                         mode="psd", noverlap=fft_window_length // 8,
                                                          window=np.hamming(fft_window_length))
     plt.pcolormesh(times, frequencies, 10 * np.log10(spectrogram), cmap="viridis")
     plt.axis("off")
