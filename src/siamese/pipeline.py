@@ -25,8 +25,8 @@ Hyperparameters section
 """
 MODEL_NAME = "vgg16_simplified"
 EXPERIMENT_UUID = str(uuid.uuid4())
-CHUNKS = 3
-VALIDATION_SAMPLE_SIZE = 40
+CHUNKS = 1
+VALIDATION_SAMPLE_SIZE = 200
 TEST_SAMPLE_SIZE = 0
 TRAINING_SUBSET_SIZE = 4000
 INPUT_SIZE = 224
@@ -56,17 +56,17 @@ with open(PATH_TO_SAVE.joinpath("experiment_info"), "wb") as f:
     pickle.dump(experiment_info, f)
 
 # 1. rename voiced, convert it to wav and then to spectrograms
-#convert_voiced(wav_chunks=CHUNKS) # 5 produce 3 spectrograms.. outer spectrograms are not used (
+convert_voiced(wav_chunks=CHUNKS) # 5 produce 3 spectrograms.. outer spectrograms are not used (
 # boundary effects)
 
 # 2. split spectrograms to training/validation sets.
 # !!! zkontroluj že validation_sample_size a test_sample_size jsou v násobkách wav_chunks-2 !!!!!!!!!!!
-#voiced_to_lists(validation_sample_size=VALIDATION_SAMPLE_SIZE, test_sample_size=TEST_SAMPLE_SIZE)
+voiced_to_lists(validation_sample_size=VALIDATION_SAMPLE_SIZE, test_sample_size=TEST_SAMPLE_SIZE)
 if VALIDATION_SAMPLE_SIZE % (CHUNKS - 2) != 0:
     raise Exception
 
 # 3. create spectrogram pairs for siamese network
-#unique_pairs(pairs_in_file=TRAINING_SUBSET_SIZE)
+unique_pairs(pairs_in_file=TRAINING_SUBSET_SIZE)
 
 # 4. create and save model
 siamese = create_model(INPUT_SIZE)
@@ -101,7 +101,7 @@ x_val_1 = pairs_val[:, 0]  # x_val_1.shape = (60000, 28, 28)
 x_val_2 = pairs_val[:, 1]
 
 # 6. train model
-for iteration, train_dataset_path in enumerate(PATHS["PATH_DATASET_TRAIN"].glob("voiced_pairs_path*.pickled")):
+for iteration, train_dataset_path in enumerate(PATHS["PATH_DATASET_TRAIN"].glob("*.pickled")):
 
     if first_run:
         siamese = tf.keras.models.load_model(PATH_TO_SAVE.joinpath("model"), custom_objects=({

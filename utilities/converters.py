@@ -23,11 +23,13 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
     :return: None
     """
     sample_rate, samples = wavfile.read(source_path)
-    frequencies, times, spectrogram = signal.spectrogram(samples, fs=sample_rate,
-                                                         scaling="spectrum", nfft=None,
-                                                         mode="psd", noverlap=fft_window_length // 8,
-                                                         window=np.hamming(fft_window_length))
-    plt.pcolormesh(times, frequencies, 10 * np.log10(spectrogram), cmap="viridis")
+    # frequencies, times, spectrogram = signal.spectrogram(samples, fs=sample_rate,
+    #                                                      scaling="spectrum", nfft=None,
+    #                                                      mode="psd", noverlap=fft_window_length // 2,
+    #                                                      window=np.hamming(fft_window_length))
+    frequencies, times, spectrogram = signal.spectrogram(samples, sample_rate, window=np.hamming(fft_window_length),
+                                                         noverlap=fft_window_length // 2)
+    plt.pcolormesh(times, frequencies, spectrogram, cmap="viridis")
     plt.axis("off")
     plt.savefig(destination_path.joinpath(source_path.stem + ".png"), dpi=300, format="png",
                 bbox_inches='tight', pad_inches=0)
@@ -57,9 +59,10 @@ def txt2wav(source_path: Path, destination_path: Path, sample_rate=8000, chunks=
     """
     txt_data = np.loadtxt(source_path)
     wav_chunks = np.array_split(txt_data, chunks)
-    if len(wav_chunks[:-1]) != len(wav_chunks[0]):
-        wav_chunks.pop(0) # to remove bad data at start
-        wav_chunks.pop(-1)
+    # if chunks > 2:
+    #     if len(wav_chunks[:-1]) != len(wav_chunks[0]):
+    #         wav_chunks.pop(0) # to remove bad data at start
+    #         wav_chunks.pop(-1)
 
     for idx, wav_chunk in enumerate(wav_chunks):
         chunk_path = destination_path.joinpath(f"{source_path.stem}_{idx:05d}.wav")

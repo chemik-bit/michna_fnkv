@@ -24,7 +24,7 @@ print(f"sample rate {sample_rate}")
 
 frequencies, times, spectrogram = signal.spectrogram(samples, fs=sample_rate,
                                                      scaling="spectrum", nfft=None, mode="psd",
-                                                     noverlap=128, window=np.hamming(256))
+                                                     window=np.hamming(256))
 
 #plt.imshow(spectrogram)
 plt.pcolormesh(times, frequencies, 10 * np.log10(spectrogram), cmap="viridis")
@@ -36,7 +36,12 @@ plt.xlabel('Time [sec]')
 plt.figure()
 values, ybins, xbins, im = plt.specgram(samples,
                                         mode="psd", Fs=sample_rate, window=np.hamming(256),
-                                        scale_by_freq=False, noverlap=128, scale="dB")
+                                        scale_by_freq=False, scale="dB")
 plt.figure()
-plt.pcolormesh(xbins, ybins, 10 * np.log10(values))
+f, t, Sxx = signal.spectrogram(samples, sample_rate, window=np.hamming(256))
+plt.pcolormesh(t, f, Sxx, shading='gouraud')
+plt.ylabel('Frequency [Hz]')
+plt.xlabel('Time [sec]')
+plt.show()
+# plt.pcolormesh(xbins, ybins, 10 * np.log10(values))
 plt.show()
