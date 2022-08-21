@@ -7,7 +7,7 @@ import numpy as np
 from src.conversion import convert_voiced
 from src.voiced_to_lists import voiced_to_lists
 from src.unique_pairs_paths import unique_pairs
-from src.siamese.models.vgg16_simplifed import create_model
+from src.siamese.models.small import create_model
 from src.siamese.losses import contrastive_loss
 import tensorflow as tf
 from utilities.converters import path2image
@@ -26,7 +26,7 @@ Hyperparameters section
 MODEL_NAME = "vgg16_simplified"
 EXPERIMENT_UUID = str(uuid.uuid4())
 CHUNKS = 1
-VALIDATION_SAMPLE_SIZE = 200
+VALIDATION_SAMPLE_SIZE = 40
 TEST_SAMPLE_SIZE = 0
 TRAINING_SUBSET_SIZE = 4000
 INPUT_SIZE = 224
@@ -37,6 +37,7 @@ PATH_TO_SAVE_MODEL = PATH_TO_SAVE.joinpath("model")
 PATH_TO_SAVE.mkdir(parents=True, exist_ok=True)
 PATH_TO_SAVE_MODEL.mkdir(parents=True, exist_ok=True)
 first_run = False
+PREPROCESSING = False
 
 experiment_info = {
     "uuid": EXPERIMENT_UUID,
@@ -55,18 +56,20 @@ if VALIDATION_SAMPLE_SIZE % (CHUNKS - 2) != 0:
 with open(PATH_TO_SAVE.joinpath("experiment_info"), "wb") as f:
     pickle.dump(experiment_info, f)
 
-# 1. rename voiced, convert it to wav and then to spectrograms
-convert_voiced(wav_chunks=CHUNKS) # 5 produce 3 spectrograms.. outer spectrograms are not used (
-# boundary effects)
 
-# 2. split spectrograms to training/validation sets.
-# !!! zkontroluj že validation_sample_size a test_sample_size jsou v násobkách wav_chunks-2 !!!!!!!!!!!
-voiced_to_lists(validation_sample_size=VALIDATION_SAMPLE_SIZE, test_sample_size=TEST_SAMPLE_SIZE)
-if VALIDATION_SAMPLE_SIZE % (CHUNKS - 2) != 0:
-    raise Exception
+if PREPROCESSING:
+    # 1. rename voiced, convert it to wav and then to spectrograms
+    convert_voiced(wav_chunks=CHUNKS) # 5 produce 3 spectrograms.. outer spectrograms are not used (
+    # boundary effects)
 
-# 3. create spectrogram pairs for siamese network
-unique_pairs(pairs_in_file=TRAINING_SUBSET_SIZE)
+    # 2. split spectrograms to training/validation sets.
+    # !!! zkontroluj že validation_sample_size a test_sample_size jsou v násobkách wav_chunks-2 !!!!!!!!!!!
+    voiced_to_lists(validation_sample_size=VALIDATION_SAMPLE_SIZE, test_sample_size=TEST_SAMPLE_SIZE)
+    if VALIDATION_SAMPLE_SIZE % (CHUNKS - 2) != 0:
+        raise Exception
+
+    # 3. create spectrogram pairs for siamese network
+    unique_pairs(pairs_in_file=TRAINING_SUBSET_SIZE)
 
 # 4. create and save model
 siamese = create_model(INPUT_SIZE)

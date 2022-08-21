@@ -8,31 +8,36 @@ def create_model(input_size):
     input = layers.Input((input_size, input_size, 3))
     x = tf.keras.layers.BatchNormalization()(input)
     x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x)
+    x = layers.MaxPooling2D(pool_size=(2, 2))(x)
+    x = layers.Dropout(0.1)(x)
     x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x)
     x = layers.MaxPooling2D(pool_size=(2, 2))(x)
-
-
-    x = layers.Conv2D(128, (3, 3), activation="relu", padding="same")(x)
-    x = layers.Conv2D(128, (3, 3), activation="relu", padding="same")(x)
-    x = layers.MaxPooling2D(pool_size=(2, 2), padding="same", strides=2)(x)
-
-    x = layers.Conv2D(256, (3, 3), activation="relu", padding="same")(x)
-    x = layers.Conv2D(256, (3, 3), activation="relu", padding="same")(x)
-    x = layers.Conv2D(256, (3, 3), activation="relu", padding="same")(x)
-    x = layers.MaxPooling2D(pool_size=(2, 2), padding="same", strides=2)(x)
+    x = layers.Dropout(0.1)(x)
+    x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x)
+    x = layers.MaxPooling2D(pool_size=(2, 2))(x)
+    x = layers.Dropout(0.1)(x)
+    x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x)
+    x = layers.MaxPooling2D(pool_size=(2, 2))(x)
+    x = layers.Dropout(0.1)(x)
+    x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x)
+    x = layers.MaxPooling2D(pool_size=(2, 2))(x)
+    x = layers.Dropout(0.1)(x)
+    x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x)
+    x = layers.MaxPooling2D(pool_size=(2, 2))(x)
+    x = layers.Dropout(0.1)(x)
+    x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x)
+    x = layers.MaxPooling2D(pool_size=(2, 2))(x)
     x = layers.Dropout(0.1)(x)
 
-    x = layers.Conv2D(512, (3, 3), activation="relu", padding="same")(x)
-    x = layers.Conv2D(512, (3, 3), activation="relu", padding="same")(x)
-    x = layers.Conv2D(512, (3, 3), activation="relu", padding="same")(x)
 
-    x = layers.MaxPooling2D(pool_size=(2, 2), padding="same", strides=2)(x)
-    x = layers.Dropout(0.1)(x)
+
 
     x = layers.Flatten()(x)
     x = layers.Dense(4096, activation="relu")(x)
-    x = layers.Dense(4096, activation="relu")(x)
-    x = layers.Dense(4096, activation="relu")(x)
+
+    # x = layers.Dense(4096, activation="relu")(x)
+    # x = layers.Dense(4096, activation="relu")(x)
+    # x = layers.Dense(4096, activation="relu")(x)
     embedding_network = keras.Model(input, x)
 
     input_1 = layers.Input((input_size, input_size, 3))

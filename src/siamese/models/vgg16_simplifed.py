@@ -8,7 +8,7 @@ def create_model(input_size):
     input = layers.Input((input_size, input_size, 3))
     x = tf.keras.layers.BatchNormalization()(input)
     x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x)
-    x = layers.Conv2D(64, (3, 3), activation="relu", padding="same", strides=2)(x)
+    x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x)
     x = layers.MaxPooling2D(pool_size=(2, 2))(x)
 
 
