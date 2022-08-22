@@ -4,10 +4,11 @@ from tensorflow.math import reduce_sum, square, maximum, sqrt
 import tensorflow as tf
 from tensorflow import keras
 # MODEL
+
 def create_model(input_size):
     input = layers.Input((input_size, input_size, 3))
-    x = tf.keras.layers.BatchNormalization()(input)
-    x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x)
+#    x = tf.keras.layers.BatchNormalization()(input)
+    x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(input)
     x = layers.MaxPooling2D(pool_size=(2, 2))(x)
     x = layers.SpatialDropout2D(0.1)(x)
     x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x)
@@ -21,18 +22,22 @@ def create_model(input_size):
 #    x = tf.keras.layers.BatchNormalization()(input)
     x = layers.MaxPooling2D(pool_size=(2, 2))(x)
     x = layers.SpatialDropout2D(0.1)(x)
-    x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x)
+    x = layers.Conv2D(128, (3, 3), activation="relu", padding="same")(x)
 #    x = tf.keras.layers.BatchNormalization()(input)
     x = layers.MaxPooling2D(pool_size=(2, 2))(x)
     x = layers.SpatialDropout2D(0.1)(x)
-    x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x)
+    x = layers.Conv2D(128, (3, 3), activation="relu", padding="same")(x)
 #    x = tf.keras.layers.BatchNormalization()(input)
     x = layers.MaxPooling2D(pool_size=(2, 2))(x)
     x = layers.SpatialDropout2D(0.1)(x)
-    x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x)
-#    x = tf.keras.layers.BatchNormalization()(input)
+    x = layers.Conv2D(128, (3, 3), activation="relu", padding="same")(x)
+    #    x = tf.keras.layers.BatchNormalization()(input)
     x = layers.MaxPooling2D(pool_size=(2, 2))(x)
-    x = layers.SpatialDropout2D(0.1)(x)
+#     x = layers.SpatialDropout2D(0.1)(x)
+#     x = layers.Conv2D(128, (3, 3), activation="relu", padding="same")(x)
+# #    x = tf.keras.layers.BatchNormalization()(input)
+#     x = layers.MaxPooling2D(pool_size=(2, 2))(x)
+#     x = layers.SpatialDropout2D(0.1)(x)
 
 
 
