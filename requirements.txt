@@ -1,0 +1,7 @@
+scipy
+pydub
+numpy
+colorama
+tensorflow
+matplotlib
+opencv-contrib-python
