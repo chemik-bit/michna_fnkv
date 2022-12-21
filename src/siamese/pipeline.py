@@ -7,7 +7,7 @@ import numpy as np
 from src.conversion import convert_voiced
 from src.voiced_to_lists import voiced_to_lists
 from src.unique_pairs_paths import unique_pairs
-from src.siamese.models.small_v009 import create_model
+from src.siamese.models.vgg16_hardcore_dropouts import create_model
 from src.siamese.losses import contrastive_loss
 import tensorflow as tf
 from utilities.converters import path2image
@@ -18,8 +18,8 @@ else:
     from config import CENTOS_PATHS as PATHS
 os.chdir(sys.path[1])
 
-# disable CUDA!!!
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# disable CUDA -1 if needed!!!
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 """
 Hyperparameters section
 """
@@ -36,9 +36,13 @@ PATH_TO_SAVE = PATHS["PATH_EXPERIMENTS"].joinpath(EXPERIMENT_UUID)
 PATH_TO_SAVE_MODEL = PATH_TO_SAVE.joinpath("model")
 PATH_TO_SAVE.mkdir(parents=True, exist_ok=True)
 PATH_TO_SAVE_MODEL.mkdir(parents=True, exist_ok=True)
-first_run = False
 
+# set True to prepare spectrogram images
 PREPROCESSING = False
+
+# this is helper variable to save model after each epoch
+first_run = False
+# TODO implement tensorflow data pipline to avoid all the pain with training
 
 experiment_info = {
     "uuid": EXPERIMENT_UUID,
@@ -51,6 +55,7 @@ experiment_info = {
     "epochs": EPOCHS,
     "model_name": MODEL_NAME
 }
+
 if VALIDATION_SAMPLE_SIZE % CHUNKS != 0:
     raise Exception
 
@@ -60,7 +65,7 @@ with open(PATH_TO_SAVE.joinpath("experiment_info"), "wb") as f:
 
 if PREPROCESSING:
     # 1. rename voiced, convert it to wav and then to spectrograms
-    convert_voiced(wav_chunks=CHUNKS) # 5 produce 3 spectrograms.. outer spectrograms are not used (
+    convert_voiced(wav_chunks=CHUNKS) # 5 produce 3 spectrograms, outer spectrograms are not used (
     # boundary effects)
 
     # 2. split spectrograms to training/validation sets.
