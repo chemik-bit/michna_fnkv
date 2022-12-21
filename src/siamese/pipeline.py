@@ -7,7 +7,7 @@ import numpy as np
 from src.conversion import convert_voiced
 from src.voiced_to_lists import voiced_to_lists
 from src.unique_pairs_paths import unique_pairs
-from src.siamese.models.vgg16_hardcore_dropouts import create_model
+from src.siamese.models.small_v010 import create_model
 from src.siamese.losses import contrastive_loss
 import tensorflow as tf
 from utilities.converters import path2image
@@ -23,7 +23,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 """
 Hyperparameters section
 """
-MODEL_NAME = "small"
+MODEL_NAME = "small_v010"
 EXPERIMENT_UUID = str(uuid.uuid4())
 CHUNKS = 2
 VALIDATION_SAMPLE_SIZE = 40
