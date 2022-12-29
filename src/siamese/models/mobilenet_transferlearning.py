@@ -1,42 +1,22 @@
 from tensorflow.keras import layers
 from tensorflow.keras.backend import epsilon
 from tensorflow.math import reduce_sum, square, maximum, sqrt
+from tensorflow.keras.applications.vgg16 import VGG16
 import tensorflow as tf
 from tensorflow import keras
 # MODEL
 def create_model(input_size):
     input = layers.Input((input_size, input_size, 3))
-    x = tf.keras.layers.BatchNormalization()(input)
-    x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x)
-    x = layers.Conv2D(64, (3, 3), activation="relu", padding="same")(x)
-    x = layers.MaxPooling2D(pool_size=(2, 2))(x)
-
-
-    x = layers.Conv2D(128, (3, 3), activation="relu", padding="same")(x)
-    x = layers.Conv2D(128, (3, 3), activation="relu", padding="same")(x)
-    x = layers.MaxPooling2D(pool_size=(2, 2), padding="same", strides=2)(x)
-
-    x = layers.Conv2D(256, (3, 3), activation="relu", padding="same")(x)
-    x = layers.Conv2D(256, (3, 3), activation="relu", padding="same")(x)
-    x = layers.Conv2D(256, (3, 3), activation="relu", padding="same")(x)
-    x = layers.MaxPooling2D(pool_size=(2, 2), padding="same", strides=2)(x)
-    x = layers.Dropout(0.5)(x)
-
-    x = layers.Conv2D(512, (3, 3), activation="relu", padding="same")(x)
-    x = layers.Conv2D(512, (3, 3), activation="relu", padding="same")(x)
-    x = layers.Conv2D(512, (3, 3), activation="relu", padding="same")(x)
-
-    x = layers.MaxPooling2D(pool_size=(2, 2), padding="same", strides=2)(x)
-    x = layers.Dropout(0.5)(x)
-
-    x = layers.Flatten()(x)
+    base_model =tf.keras.applications.mobilenet.MobileNet(include_top=False,
+           input_shape=(224,224,3), pooling='max', weights='imagenet',dropout=.4)
+    base_model.trainable = False  ## Not trainable weights
+    top_model = base_model.output
+    x = layers.Flatten()(top_model)
     x = layers.Dense(1024, activation="relu", kernel_regularizer=keras.regularizers.l2(0.01))(x)
-    x = layers.Dropout(0.5)(x)
-    x = layers.Dense(1024, activation="relu", kernel_regularizer=keras.regularizers.l2(0.01))(x)
-    x = layers.Dropout(0.5)(x)
-    x = layers.Dense(1024, activation="relu", kernel_regularizer=keras.regularizers.l2(0.01))(x)
-    x = layers.Dropout(0.5)(x)
-    embedding_network = keras.Model(input, x)
+    x = layers.Dense(512, activation="relu", kernel_regularizer=keras.regularizers.l2(0.01))(x)
+
+
+    embedding_network = keras.Model(base_model.input, x)
 
     input_1 = layers.Input((input_size, input_size, 3))
     input_2 = layers.Input((input_size, input_size, 3))
@@ -118,3 +98,5 @@ def create_model(input_size):
         save_best_only=True)
 
     return siamese
+
+
