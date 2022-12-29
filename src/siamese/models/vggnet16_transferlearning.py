@@ -8,7 +8,7 @@ from tensorflow import keras
 def create_model(input_size):
     input = layers.Input((input_size, input_size, 3))
     base_model =tf.keras.applications.vgg16.VGG16(include_top=False,
-           input_shape=(224,224,3), pooling='max', weights='imagenet',dropout=.4)
+           input_shape=(input_size, input_size, 3), pooling='max', weights='imagenet')
     base_model.trainable = False  ## Not trainable weights
     top_model = base_model.output
     x = layers.Flatten()(top_model)

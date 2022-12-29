@@ -39,7 +39,7 @@ PATH_TO_SAVE.mkdir(parents=True, exist_ok=True)
 PATH_TO_SAVE_MODEL.mkdir(parents=True, exist_ok=True)
 
 # set True to prepare spectrogram images
-PREPROCESSING = True
+PREPROCESSING = False
 
 # this is helper variable to save model after each epoch
 first_run = False
@@ -80,7 +80,8 @@ if PREPROCESSING:
 
 # 4. create and save model
 siamese = create_model(INPUT_SIZE)
-siamese.compile(loss=contrastive_loss, optimizer="Adam", metrics=["accuracy"])
+optimizer_siam = tf.keras.optimizers.Adam(learning_rate=0.0001)
+siamese.compile(loss=contrastive_loss, optimizer=optimizer_siam, metrics=["accuracy"])
 siamese.summary()
 siamese.save(PATH_TO_SAVE_MODEL)
 siamese = tf.keras.models.load_model(PATH_TO_SAVE_MODEL, custom_objects=({
