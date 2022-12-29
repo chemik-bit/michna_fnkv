@@ -7,7 +7,7 @@ import numpy as np
 from src.conversion import convert_voiced
 from src.voiced_to_lists import voiced_to_lists
 from src.unique_pairs_paths import unique_pairs
-from src.siamese.models.mobilenet_transferlearning import create_model
+from src.siamese.models.vggnet16_transferlearning import create_model
 from src.siamese.losses import contrastive_loss
 import tensorflow as tf
 from utilities.converters import path2image
@@ -23,9 +23,9 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 """
 Hyperparameters section
 """
-MODEL_NAME = "mobilenet_transferlearning"
+MODEL_NAME = "vgg16_transferlearning"
 EXPERIMENT_UUID = str(uuid.uuid4())
-CHUNKS = 20
+CHUNKS = 10
 # TODO number of patients, instead of histograms!
 VALIDATION_SAMPLE_SIZE = 400
 TEST_SAMPLE_SIZE = 0
@@ -39,7 +39,7 @@ PATH_TO_SAVE.mkdir(parents=True, exist_ok=True)
 PATH_TO_SAVE_MODEL.mkdir(parents=True, exist_ok=True)
 
 # set True to prepare spectrogram images
-PREPROCESSING = False
+PREPROCESSING = True
 
 # this is helper variable to save model after each epoch
 first_run = False

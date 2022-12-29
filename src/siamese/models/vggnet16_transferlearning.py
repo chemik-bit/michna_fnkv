@@ -7,7 +7,7 @@ from tensorflow import keras
 # MODEL
 def create_model(input_size):
     input = layers.Input((input_size, input_size, 3))
-    base_model =tf.keras.applications.mobilenet.MobileNet(include_top=False,
+    base_model =tf.keras.applications.vgg16.VGG16(include_top=False,
            input_shape=(224,224,3), pooling='max', weights='imagenet',dropout=.4)
     base_model.trainable = False  ## Not trainable weights
     top_model = base_model.output
