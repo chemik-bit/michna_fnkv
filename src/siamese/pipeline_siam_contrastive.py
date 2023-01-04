@@ -5,9 +5,9 @@ import uuid
 
 import numpy as np
 from src.conversion import convert_voiced
-from src.voiced_to_lists import voiced_to_lists
-from src.unique_pairs_paths import unique_pairs
-from src.siamese.models.vggnet16_transferlearning import create_model
+from src.voiced_to_lists import voiced_to_pickle
+from src.siamese.unique_pairs_paths import unique_pairs
+from src.siamese.models.mobilenet_transferlearning import create_model
 from src.siamese.losses import contrastive_loss
 import tensorflow as tf
 from utilities.converters import path2image
@@ -25,9 +25,9 @@ Hyperparameters section
 """
 MODEL_NAME = "vgg16_transferlearning"
 EXPERIMENT_UUID = str(uuid.uuid4())
-CHUNKS = 10
+CHUNKS = 4
 # TODO number of patients, instead of histograms!
-VALIDATION_SAMPLE_SIZE = 400
+VALIDATION_SAMPLE_SIZE = 80
 TEST_SAMPLE_SIZE = 0
 TRAINING_SUBSET_SIZE = 4000
 INPUT_SIZE = 224
@@ -71,7 +71,7 @@ if PREPROCESSING:
 
     # 2. split spectrograms to training/validation sets.
     # !!! zkontroluj že validation_sample_size a test_sample_size jsou v násobkách wav_chunks-2 !!!!!!!!!!!
-    voiced_to_lists(validation_sample_size=VALIDATION_SAMPLE_SIZE, test_sample_size=TEST_SAMPLE_SIZE)
+    voiced_to_pickle(validation_sample_size=VALIDATION_SAMPLE_SIZE, test_sample_size=TEST_SAMPLE_SIZE)
     # if VALIDATION_SAMPLE_SIZE % (CHUNKS - 2) != 0:
     #     raise Exception
 
