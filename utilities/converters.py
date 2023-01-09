@@ -28,7 +28,7 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
     #                                                      mode="psd", noverlap=fft_window_length // 2,
     #                                                      window=np.hamming(fft_window_length))
     frequencies, times, spectrogram = signal.spectrogram(samples, sample_rate, window=np.hamming(fft_window_length),
-                                                         noverlap=fft_window_length // 2)
+                                                         noverlap=fft_window_length -1)
     plt.pcolormesh(times, frequencies, spectrogram, cmap="viridis")
     plt.axis("off")
     plt.savefig(destination_path.joinpath(source_path.stem + ".png"), dpi=300, format="png",

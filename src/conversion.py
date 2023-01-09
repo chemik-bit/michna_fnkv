@@ -69,6 +69,6 @@ def convert_voiced(wav_chunks):
     for sound_file in SOURCE_PATH.glob("*.wav"):
         start = timer()
         print(f"converting {sound_file.name}")
-        wav2spectrogram(sound_file, DESTINATION_PATH, 256)
+        wav2spectrogram(sound_file, DESTINATION_PATH, 512)
         end = timer()
         print(f"{sound_file.name} conversion: {end-start:.2f} s")
