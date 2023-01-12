@@ -1,3 +1,2 @@
-- generování ladícího datasetu
-- do siamese.py přidat switch pro ladění (loading ladícího datasetu a testování funkcionality/konvergenece atp.)
-- ...
+- předělat preprocessing tak aby se ukládali spektrogrami ve full dpi i spektrogramy v rozlišení potřebném pro síť
+- 

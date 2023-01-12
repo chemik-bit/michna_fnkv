@@ -3,6 +3,7 @@ Project directories and files checker.
 """
 import os
 from colorama import Fore, Style
+import csv
 
 if os.name == "nt":
     from config import WINDOWS_PATHS as PATHS
@@ -30,6 +31,15 @@ def check_consistency():
     else:
         print("Database missing in data folder.. ")
         consistency = False
+
+    # check csv file
+    if PATHS["PATH_CSV"].joinpath("datasets_info.csv").exists():
+        print("CSV datasets database (datasets_info.csv) .......... OK")
+    else:
+        print("CSV datasets database missing in data folder.. creating")
+        with open(PATHS["PATH_CSV"].joinpath("datasets_info.csv"), "a", encoding="UTF8", newline="") as csv_file:
+            writer = csv.writer(csv_file)
+            writer.writerow(["wav_chunks", "octaves", "fft_len", "fft_overlap", "spectrogram_resolution"])
 
     # check sound_files folder is empty
     if not any(PATHS["PATH_SOUNDFILES"].iterdir()):

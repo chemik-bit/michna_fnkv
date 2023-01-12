@@ -55,7 +55,8 @@ def create_model(input_size):
         save_weights_only=False,
         monitor='val_accuracy',
         mode='min',
-        save_best_only=True)
+        save_best_only=True,
+        initial_value_threshold=0.7)
 
     return x
 

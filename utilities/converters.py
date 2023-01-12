@@ -57,16 +57,17 @@ def txt2wav(source_path: Path, destination_path: Path, sample_rate=8000, chunks=
     :param chunks: number of chunks -> each txt is divided to multiple wav files
     :return: None
     """
+    destination_path.mkdir(parents=True, exist_ok=True)
     txt_data = np.loadtxt(source_path)
     wav_chunks = np.array_split(txt_data, chunks)
-    # if chunks > 2:
-    #     if len(wav_chunks[:-1]) != len(wav_chunks[0]):
-    #         wav_chunks.pop(0) # to remove bad data at start
-    #         wav_chunks.pop(-1)
+    wav_chunks.pop(0)  # to remove bad data at start
+
 
     for idx, wav_chunk in enumerate(wav_chunks):
         chunk_path = destination_path.joinpath(f"{source_path.stem}_{idx:05d}.wav")
-        wavfile.write(filename=chunk_path, rate=sample_rate, data=wav_chunk)
+        if not chunk_path.is_file():
+            print(f"creating {chunk_path}")
+            wavfile.write(filename=chunk_path, rate=sample_rate, data=wav_chunk)
 
 
 def rename_voiced(voiced_path: Path, destination_path: Path):
