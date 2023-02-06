@@ -10,7 +10,7 @@ from scipy.io import wavfile
 import numpy as np
 from matplotlib import pyplot as plt
 
-from src.cnn.models.cnn002 import create_model
+
 from utilities.converters import txt2wav
 from dev.octave_filters import octave_filtering
 
@@ -97,7 +97,7 @@ def data_pipeline(wav_chunks: int, octaves: list,
     return DESTINATION_SPECTROGRAM_PATH
 
 
-path = data_pipeline(11, [3, 4, 5, 6], 256, 128 // 2, (224, 224))
+path = data_pipeline(10, [3], 256, 128 // 2, (224, 224))
 
 train = tf.keras.preprocessing.image_dataset_from_directory(
   path.joinpath("training"),
@@ -108,6 +108,7 @@ train = tf.keras.preprocessing.image_dataset_from_directory(
 val = tf.keras.preprocessing.image_dataset_from_directory(
   path.joinpath("validation"),
   image_size=(224, 224))
+from src.cnn.models.cnn002 import create_model
 
 model = create_model(224)
 focal_loss = tf.keras.losses.BinaryCrossentropy()
@@ -115,5 +116,5 @@ optimizer_cnn = tf.keras.optimizers.Adam(learning_rate=0.0001)
 model.compile(loss=focal_loss, optimizer=optimizer_cnn, metrics=["accuracy"])
 model.summary()
 # Display the model summary.
-history = model.fit(train, validation_data=val, epochs=100).history
+history = model.fit(train, validation_data=val, epochs=2).history
 print(history)

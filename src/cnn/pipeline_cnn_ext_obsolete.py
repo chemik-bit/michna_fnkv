@@ -90,7 +90,7 @@ model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     monitor='val_accuracy',
     mode='max',
     save_best_only=True,
-    verbose=1)
+    verbose=1,initial_value_threshold=0.7)
 
 # 5. load validation set
 print("Loading validation set....")

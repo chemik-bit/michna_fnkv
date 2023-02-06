@@ -45,9 +45,9 @@ def create_model(input_size):
     Compile the model with the contrastive loss
     """
     x.compile(loss=tf.losses.binary_crossentropy, optimizer="adam", metrics=["accuracy"])
-    x.summary()
-    x.save("./siamese_tf")
-    x = tf.keras.models.load_model("./siamese_tf")
+    # x.summary()
+    # x.save("./siamese_tf")
+    # x = tf.keras.models.load_model("./siamese_tf")
 
     checkpoint_filepath = './siamese_tf_checkpoint'
     model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
@@ -59,4 +59,3 @@ def create_model(input_size):
         initial_value_threshold=0.7)
 
     return x
-

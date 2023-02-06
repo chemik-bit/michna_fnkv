@@ -1,5 +1,5 @@
 from scipy import signal
-
+import numpy as np
 
 def octave_filtering(octaves: list, x: list):
     """
@@ -18,8 +18,10 @@ def octave_filtering(octaves: list, x: list):
         7: [2000, 4000],
         8: [4000, 8000]
     }
-    for octave in octaves:
-        sos = signal.butter(12, octave_limits[octave], "bandpass", output="sos", fs=8000)
-        x = signal.sosfilt(sos, x)
+    result = [0 for x in range(len(octaves))]
 
-    return x
+    for idx, octave in enumerate(octaves):
+        sos = signal.butter(12, octave_limits[octave], "bandpass", output="sos", fs=8000)
+        result[idx] = signal.sosfilt(sos, x)
+
+    return np.asarray([sum(x) for x in zip(*result)])
