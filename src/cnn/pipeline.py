@@ -68,8 +68,11 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
             f"{prefix}_ch{wav_chunks}_res{spectrogram_resolution[0]}x{spectrogram_resolution[1]}",
             subdir_name)
     # number of healthy
-    set_size = min(len(list(destination_wav_path.glob("*_healthy*"))),
-                   len(list(destination_wav_path. glob("*_nonhealthy*"))))
+    if balanced:
+        set_size = min(len(list(destination_wav_path.glob("*_healthy*"))),
+                       len(list(destination_wav_path.glob("*_nonhealthy*"))))
+    else:
+        set_size = len(list(destination_wav_path.glob("*.*")))
     print("healthy wavs: ", len(list(destination_wav_path.glob("*_healthy*"))))
     print("nonhealthy wavs: ", len(list(destination_wav_path.glob("*_nonhealthy*"))))
     print("set size: ", str(set_size))
@@ -148,7 +151,7 @@ else:
 os.chdir(sys.path[1])
 image_sizes = [(40, 40), (50, 50), (60, 60), (80, 80), (100, 100)]
 chunks = [x for x in range(2, 15)]
-balances = [True, False]
+balances = [False]
 fft_lens = [256, 128, 64]
 for fft_len in fft_lens:
     for balance in balances:
@@ -187,7 +190,7 @@ for fft_len in fft_lens:
                 # Display the model summary.
                 history = model.fit(train, validation_data=val, epochs=1000, batch_size=50).history
                 with open("result.txt", "a") as result_file:
-                    result_file.write(f"cnn01, val acc max: {max(history['val_accuracy'][10:])},"
+                    result_file.write(f"cnn01, val acc max: {max(history['val_accuracy'][10:])}, acc max: {max(history['accuracy'][10:])}"
                                       f" balance: {balance},"
                                       f" fft_len: {fft_len},"
                                       f" chunks: {chunk},"
