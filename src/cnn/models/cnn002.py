@@ -11,9 +11,13 @@ def create_model(input_size):
     base_model.trainable = True  ## Not trainable weights
     top_model = base_model.output
     x = layers.Flatten()(top_model)
-    x = layers.Dense(4096, activation="relu", kernel_regularizer=keras.regularizers.l2(0.1))(x)
-    x = layers.Dense(4096, activation="relu", kernel_regularizer=keras.regularizers.l2(0.1))(x)
-    x = layers.Dense(4096, activation="relu", kernel_regularizer=keras.regularizers.l2(0.1))(x)
+    x = layers.Dense(4096, activation="relu", kernel_regularizer=keras.regularizers.l2(0.01))(x)
+    x = layers.Dropout(0.5)(x)
+    x = layers.Dense(2048, activation="relu", kernel_regularizer=keras.regularizers.l2(0.01))(x)
+    x = layers.Dropout(0.5)(x)
+    x = layers.Dense(1024, activation="relu", kernel_regularizer=keras.regularizers.l2(0.01))(x)
+    x = layers.Dropout(0.5)(x)
+    #x = layers.Dropout(0.1)(x)
     x = layers.Dense(1, activation="sigmoid")(x)
     model = tf.keras.Model(inputs=base_model.input, outputs=x)
     return model

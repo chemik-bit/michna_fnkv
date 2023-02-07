@@ -12,8 +12,12 @@ from matplotlib import pyplot as plt
 
 from src.cnn.models.cnn002 import create_model
 from utilities.converters import txt2wav
-from dev.octave_filters import octave_filtering
+from utilities.octave_filter_bank import octave_filtering
 
+
+def transform_image(image, label):
+  # normalizace a převod na float32
+  return tf.cast(image, tf.float32) / 255., label
 
 def data_pipeline(wav_chunks: int, octaves: list,
                   fft_len: int, fft_overlap: int, spectrogram_resolution: tuple):
@@ -96,24 +100,28 @@ def data_pipeline(wav_chunks: int, octaves: list,
 
     return DESTINATION_SPECTROGRAM_PATH
 
-
-path = data_pipeline(11, [3, 4, 5, 6], 256, 128 // 2, (224, 224))
+image_sizes = (224, 224)
+path = data_pipeline(12, [3, 4, 5], 256, 128 // 2, image_sizes)
 
 train = tf.keras.preprocessing.image_dataset_from_directory(
   path.joinpath("training"),
 
-  image_size=(224, 224),
+  image_size=image_sizes,
   batch_size=32)
 
 val = tf.keras.preprocessing.image_dataset_from_directory(
   path.joinpath("validation"),
-  image_size=(224, 224))
+  image_size=image_sizes)
 
-model = create_model(224)
-focal_loss = tf.keras.losses.BinaryCrossentropy()
-optimizer_cnn = tf.keras.optimizers.Adam(learning_rate=0.0001)
+train = train.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
+val = val.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
+
+model = create_model(image_sizes[0])
+# focal_loss = tf.keras.losses.BinaryCrossentropy()
+focal_loss = tf.keras.losses.BinaryFocalCrossentropy(apply_class_balancing=True)
+optimizer_cnn = tf.keras.optimizers.Adam(learning_rate=0.000001)
 model.compile(loss=focal_loss, optimizer=optimizer_cnn, metrics=["accuracy"])
 model.summary()
 # Display the model summary.
-history = model.fit(train, validation_data=val, epochs=100).history
-print(history)
+history = model.fit(train, validation_data=val, epochs=1000, batch_size=20).history
+print("val acc max: {}".format(max(history["val_accuracy"][10:])))

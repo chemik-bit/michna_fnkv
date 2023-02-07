@@ -7,38 +7,23 @@ from tensorflow import keras
 
 def create_model(input_size):
     x = tf.keras.Sequential()
-    x.add(layers.Input((input_size, input_size, 3)))
-#    x = tf.keras.layers.BatchNormalization()(input)
-    x.add(layers.Conv2D(64, (3, 3), activation="relu", padding="same"))
-    x.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    x.add(layers.SpatialDropout2D(0.1))
-    x.add(layers.Conv2D(64, (3, 3), activation="relu", padding="same"))
-    x.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    x.add(layers.SpatialDropout2D(0.1))
-    x.add(layers.Conv2D(64, (3, 3), activation="relu", padding="same"))
-#    x = tf.keras.layers.BatchNormalization()(input)
-    x.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    x.add(layers.SpatialDropout2D(0.1))
-    x.add(layers.Conv2D(128, (3, 3), activation="relu", padding="same"))
-#    x = tf.keras.layers.BatchNormalization()(input)
-    x.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    x.add(layers.SpatialDropout2D(0.1))
-    x.add(layers.Conv2D(128, (3, 3), activation="relu", padding="same"))
 
-    x.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    x.add(layers.SpatialDropout2D(0.1))
-    x.add(layers.Conv2D(256, (3, 3), activation="relu", padding="same"))
-    x.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    x.add(layers.SpatialDropout2D(0.1))
+#    x = tf.keras.layers.BatchNormalization()(input)
+    x.add(layers.Conv2D(32, (5, 5), activation="relu", padding="same",input_shape=(input_size, input_size, 3)))
+    x.add(layers.MaxPooling2D(pool_size=(2, 2), strides=2))
 
-    x.add(layers.Conv2D(256, (3, 3), activation="relu", padding="same"))
-    x.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    x.add(layers.SpatialDropout2D(0.1))
+    x.add(layers.Conv2D(64, (5, 5), activation="relu", padding="same"))
+    x.add(layers.MaxPooling2D(pool_size=(2, 2), strides=2))
+
+    x.add(layers.Conv2D(128, (5, 5), activation="relu", padding="same"))
+
+    x.add(layers.MaxPooling2D(pool_size=(2, 2), strides=2))
 
 
     x.add(layers.Flatten())
-    x.add(layers.Dense(4096, activation="relu"))
-    x.add(layers.Dense(4096, activation="relu"))
+    x.add(layers.Dense(600, activation="relu"))
+    x.add(layers.Dense(600, activation="relu"))
+    #x.add(layers.Dense(4096, activation="relu"))
     x.add(layers.Dense(1, activation="sigmoid"))
 
     """
@@ -49,13 +34,13 @@ def create_model(input_size):
     # x.save("./siamese_tf")
     # x = tf.keras.models.load_model("./siamese_tf")
 
-    checkpoint_filepath = './siamese_tf_checkpoint'
-    model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-        filepath=checkpoint_filepath,
-        save_weights_only=False,
-        monitor='val_accuracy',
-        mode='min',
-        save_best_only=True,
-        initial_value_threshold=0.7)
+    # checkpoint_filepath = './siamese_tf_checkpoint'
+    # model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+    #     filepath=checkpoint_filepath,
+    #     save_weights_only=False,
+    #     monitor='val_accuracy',
+    #     mode='min',
+    #     save_best_only=True,
+    #     initial_value_threshold=0.7)
 
     return x
