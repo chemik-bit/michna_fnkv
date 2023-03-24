@@ -48,16 +48,17 @@ def stereo2mono(source_path: Path, destination_path: Path):
     sound.export(destination_path.joinpath(source_path.name), format="wav")
 
 
-def txt2wav(source_path: Path, destination_path: Path, sample_rate=8000, chunks=1):
+def txt2wav(source_path: Path, destination_path: Path, sample_rate: int, chunks: int = 1):
     """
     Converts voiced db, where data files are text files, cointaining wav sample values.
     :param source_path: path to voiced database txt files
     :param destination_path: path to destination folder
-    :param sample_rate: target wav sample rate (8000 Hz for voiced)
+    :param sample_rate: target wav sample rate
     :param chunks: number of chunks -> each txt is divided to multiple wav files
     :return: None
     """
     destination_path.mkdir(parents=True, exist_ok=True)
+    print(source_path)
     txt_data = np.loadtxt(source_path)
     wav_chunks = np.array_split(txt_data, chunks)
     wav_chunks.pop(0)  # to remove bad data at start

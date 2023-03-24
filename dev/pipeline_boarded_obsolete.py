@@ -138,7 +138,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
 
     # convert txt voiced files to wav chunks
     for file in source_path.glob("*.txt"):
-        txt2wav(file, destination_wav_path, chunks=wav_chunks)
+        txt2wav(file, destination_wav_path, chunks=wav_chunks, sample_rate=8000)
     # filter wav files and produce spectrograms
     subdir_name = "".join(map(str,octaves)) + f"_fft{fft_len}_overlap{fft_overlap}"
     prefix = "nonbalanced"

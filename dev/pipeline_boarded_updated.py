@@ -1,0 +1,262 @@
+"""
+Complete datapipeline for CNN classification.
+1. Convert wavs to chunks
+2. Convert chunks to spectrograms
+3. Create training/validation datasets
+3. Import CNN model.
+4. Load training/validation datasets as tf.dataset.Data
+5. Train CNN model and validate
+"""
+import os
+import sys
+import csv
+from random import shuffle
+import tensorflow as tf
+from scipy import signal
+from scipy.io import wavfile
+import numpy as np
+from matplotlib import pyplot as plt
+from sklearn.metrics import confusion_matrix
+from src.cnn.models.cnn001 import create_model
+from utilities.converters import txt2wav
+from utilities.octave_filter_bank import octave_filtering
+import itertools
+import io
+import sklearn.metrics
+import tensorflow_addons as tfa
+
+def log_confusion_matrix(epoch, logs):
+    # Use the model to predict the values from the test_images.
+
+    test_pred_raw = model.predict(val) # val should be images
+
+    test_pred = np.argmax(test_pred_raw, axis=1)
+
+
+
+    # Calculate the confusion matrix using sklearn.metrics
+    y = np.concatenate([y for x, y in val], axis=0)
+
+    cm = sklearn.metrics.confusion_matrix(y, test_pred) #val should be labels
+    figure = plot_confusion_matrix(cm, class_names=["healthy", "nonhealthy"])
+
+    cm_image = plot_to_image(figure)
+
+    # Log the confusion matrix as an image summary.
+    with file_writer_cm.as_default():
+        tf.summary.image("Confusion Matrix", cm_image, step=epoch)
+
+def plot_to_image(figure):
+    """
+    Converts the matplotlib plot specified by 'figure' to a PNG image and
+    returns it. The supplied figure is closed and inaccessible after this call.
+    """
+
+    buf = io.BytesIO()
+
+    # Use plt.savefig to save the plot to a PNG in memory.
+    plt.savefig(buf, format='png')
+
+    # Closing the figure prevents it from being displayed directly inside
+    # the notebook.
+    plt.close(figure)
+    buf.seek(0)
+
+    # Use tf.image.decode_png to convert the PNG buffer
+    # to a TF image. Make sure you use 4 channels.
+    image = tf.image.decode_png(buf.getvalue(), channels=4)
+
+    # Use tf.expand_dims to add the batch dimension
+    image = tf.expand_dims(image, 0)
+
+    return image
+
+def plot_confusion_matrix(cm, class_names):
+    """
+    Returns a matplotlib figure containing the plotted confusion matrix.
+
+    Args:
+       cm (array, shape = [n, n]): a confusion matrix of integer classes
+       class_names (array, shape = [n]): String names of the integer classes
+    """
+
+    figure = plt.figure(figsize=(8, 8))
+    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.title("Confusion matrix")
+    plt.colorbar()
+    tick_marks = np.arange(len(class_names))
+    plt.xticks(tick_marks, class_names, rotation=45)
+    plt.yticks(tick_marks, class_names)
+
+    # Normalize the confusion matrix.
+    cm = np.around(cm.astype('float') / cm.sum(axis=1)[:, np.newaxis], decimals=2)
+
+    # Use white text if squares are dark; otherwise black.
+    threshold = cm.max() / 2.
+
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        color = "white" if cm[i, j] > threshold else "black"
+        plt.text(j, i, cm[i, j], horizontalalignment="center", color=color)
+
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    return figure
+
+def transform_image(image, label):
+    """
+    Function to perform image transformation.
+    :param image: image to be transformed
+    :param label: image class label
+    :return: normalized image as tf.float32 and its label
+    """
+    return tf.cast(image, tf.float32) / 255., label
+
+
+def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
+                  fft_len: int, fft_overlap: int, spectrogram_resolution: tuple,
+                  **options):
+    """
+    Function providing the data pipelining.
+    1. Split wav to chunks
+    2. Apply octave filters
+    3. Create spectrogram images and save them on a disk
+    :param balanced: True to create balanced dataset
+    :param wav_chunks: number of wav chunks. First chunk is always droped, due to boundary effects.
+    :param octaves: list of octave filters
+    :param fft_len: lenght of fft window to generate spectrogram
+    :param fft_overlap: overlaping of fft windows to generate spectrogram
+    :param spectrogram_resolution: spectrogram image resolution
+    :param training_db: selection from databases for training dataset. Options 'voiced', 'svd', 'mixed'
+    :param validation_db: selection from databases for validation dataset. Options 'voiced', 'svd', 'mixed'
+    :return: path to folder with training and validation set (spectrogram images)
+    """
+    inch_x = spectrogram_resolution[0] / 300  # 300 is value in plt.savefig..
+    inch_y = spectrogram_resolution[1] / 300
+
+    # 1. Convert wavs to chunks
+    # Check options
+    if ("options" in locals()) and ("training" in options.keys()) and ("validation" in options.keys()):
+        used_dbs = list({options["training"], options["validation"]})
+        # Prepare wav files for mentioned databases in training and validation
+    else:
+        print("converting both databases")
+        used_dbs = ["voiced", "svd"]
+        # Prepare wav files for both databases
+
+    for db in used_dbs:
+        source_path = PATHS[f"PATH_{db.upper()}_RENAMED"]
+        destination_path_wav = PATHS["PATH_WAV"].joinpath(db).joinpath(str(wav_chunks))
+
+        for file in source_path.iterdir():
+            sample_rate = int(file.stem.split("_")[-1])
+            txt2wav(file, destination_path_wav, sample_rate, wav_chunks)
+
+    #2. Convert chunks to spectrograms
+        subdir_name = f"ch{wav_chunks}_" \
+                      f"res{spectrogram_resolution[0]}x{spectrogram_resolution[1]}_" \
+                      f"octaves{''.join(map(str,octaves))}_" \
+                      f"fft{fft_len}_" \
+                      f"overlap{fft_overlap}"
+        destination_path_spectrogram = PATHS["PATH_SPECTROGRAMS"].joinpath(db).joinpath(subdir_name)
+        destination_path_spectrogram.mkdir(parents=True, exist_ok=True)
+        print("Proceeeding with spectrograms...")
+        for sound_file in destination_path_wav.iterdir():
+            if not destination_path_spectrogram.joinpath(f"{sound_file.stem}.png").exists():
+                # Create spectrogram
+                sample_rate, samples = wavfile.read(sound_file)
+                samples = octave_filtering(octaves, samples)
+                frequencies, times, spectrogram = signal.spectrogram(samples,
+                                                                     sample_rate,
+                                                                     window=np.hamming(fft_len),
+                                                                     noverlap=fft_overlap)
+
+                fig = plt.figure(frameon=False)
+                fig.set_size_inches(inch_y, inch_x)
+                plot_axes = plt.Axes(fig, [0., 0., 1., 1.])
+                plot_axes.set_axis_off()
+                fig.add_axes(plot_axes)
+                plot_axes.pcolormesh(times, frequencies, spectrogram, cmap="hsv")
+                plt.savefig(destination_path_spectrogram.joinpath(f"{sound_file.stem}.png"), format="png",
+                            bbox_inches='tight', pad_inches=0, dpi=300)
+                plt.close("all")
+
+    # 3. Create training/validation datasets
+
+if os.name == "nt":
+    from config import WINDOWS_PATHS as PATHS
+else:
+    from config import CENTOS_PATHS as PATHS
+os.chdir(sys.path[1])
+image_sizes = [(80, 80)]
+chunks = [5]
+balances = [False]
+fft_lens = [256]
+for fft_len in fft_lens:
+    for balance in balances:
+        for chunk in chunks:
+            for image_size in image_sizes:
+
+                print(f"Entering data_pipeline.... {image_size}")
+                path = data_pipeline(chunk, [3, 4, 5, 6], balance, fft_len, fft_len // 2, image_size, training="svd", validation="voiced")
+                print("Exited data_pipeline....")
+
+                # train = tf.keras.preprocessing.image_dataset_from_directory(
+                #   path.joinpath("training"),
+                #
+                #   image_size=image_size,
+                #   batch_size=32)
+                #
+                # print("Train set loaded")
+                # val = tf.keras.preprocessing.image_dataset_from_directory(
+                #   path.joinpath("validation"),
+                #   image_size=image_size)
+                # print("Validation set loaded")
+                # train = train.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
+                # val = val.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
+                # print("Sets transformed...")
+                # model = create_model(image_size[0])
+                # focal_loss = tf.keras.losses.BinaryCrossentropy()
+                # #focal_loss = tf.keras.losses.BinaryFocalCrossentropy(apply_class_balancing=False)
+                # lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+                #     initial_learning_rate=1e-2,
+                #     decay_steps=1000000,
+                #     decay_rate=0.99)
+                # optimizer_cnn = tf.keras.optimizers.Adam(learning_rate=0.00001)
+                # log_dir = "logs"
+                # # tensorboard stuff
+                # from tensorflow.keras.callbacks import TensorBoard
+                #
+                # tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="logs")
+                # # callbacks = [TensorBoard(log_dir=log_dir,
+                # #                          histogram_freq=1,
+                # #                          write_graph=True,
+                # #                          write_images=False,
+                # #                          update_freq='epoch',
+                # #                          profile_batch=2,
+                # #                          embeddings_freq=1)]
+                # file_writer_cm = tf.summary.create_file_writer(log_dir + '/cm')
+                # cm_callback = tf.keras.callbacks.LambdaCallback(on_epoch_end=log_confusion_matrix)
+                # metrics_list = ["accuracy",
+                #                 tf.keras.metrics.TruePositives(),
+                #                 tf.keras.metrics.TrueNegatives(),
+                #                 tf.keras.metrics.FalsePositives(),
+                #                 tf.keras.metrics.FalseNegatives(),
+                #                 tf.keras.metrics.Precision(),
+                #                 tf.keras.metrics.Recall(),
+                #                 tf.keras.metrics.AUC()]
+                # model.compile(loss=focal_loss, optimizer=optimizer_cnn, metrics=metrics_list)
+                # model.summary()
+                # # Display the model summary.
+                # history = model.fit(train, validation_data=val, epochs=1000, batch_size=8, callbacks=[tensorboard_callback]).history
+                # healthy_validation = len(list(path.joinpath("validation", "healthy").glob("*")))
+                # nonhealthy_validation = len(list(path.joinpath("validation", "nonhealthy").glob("*")))
+                #
+                # with open("result_focal_exps.txt", "a") as result_file:
+                #     result_file.write(f"cnn01_005, val acc max: {max(history['val_accuracy'])}, acc max: {max(history['accuracy'])}"
+                #                       f" balance: {balance},"
+                #                       f" fft_len: {fft_len},"
+                #                       f" chunks: {chunk},"
+                #                       f" image_size: {image_size},"
+                #                       f"val_ratio: {nonhealthy_validation / (nonhealthy_validation + healthy_validation)}\n")
+                # print(history.keys())
