@@ -58,7 +58,7 @@ def txt2wav(source_path: Path, destination_path: Path, sample_rate: int, chunks:
     :return: None
     """
     destination_path.mkdir(parents=True, exist_ok=True)
-    print(source_path)
+    # print(source_path)
     txt_data = np.loadtxt(source_path)
     wav_chunks = np.array_split(txt_data, chunks)
     wav_chunks.pop(0)  # to remove bad data at start
@@ -67,7 +67,7 @@ def txt2wav(source_path: Path, destination_path: Path, sample_rate: int, chunks:
     for idx, wav_chunk in enumerate(wav_chunks):
         chunk_path = destination_path.joinpath(f"{source_path.stem}_{idx:05d}.wav")
         if not chunk_path.is_file():
-            print(f"creating {chunk_path}")
+            # print(f"creating {chunk_path}")
             wavfile.write(filename=chunk_path, rate=sample_rate, data=wav_chunk)
 
 

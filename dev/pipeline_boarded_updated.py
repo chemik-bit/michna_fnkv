@@ -24,6 +24,8 @@ import itertools
 import io
 import sklearn.metrics
 import tensorflow_addons as tfa
+import re
+import shutil
 
 def log_confusion_matrix(epoch, logs):
     # Use the model to predict the values from the test_images.
@@ -134,6 +136,19 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
     inch_x = spectrogram_resolution[0] / 300  # 300 is value in plt.savefig..
     inch_y = spectrogram_resolution[1] / 300
 
+    if ("options" in locals()) and ("train_ratio" in options.keys()):
+        train_to_val_ratio = options["train_ratio"] / (1 - options["train_ratio"])
+    elif ("options" in locals()) and ("val_ratio" in options.keys()):
+        train_to_val_ratio = (1 - options["val_ratio"]) / options["val_ratio"]
+    else:
+        train_to_val_ratio = 4
+
+    subdir_name = f"ch{wav_chunks}_" \
+                  f"res{spectrogram_resolution[0]}x{spectrogram_resolution[1]}_" \
+                  f"octaves{''.join(map(str, octaves))}_" \
+                  f"fft{fft_len}_" \
+                  f"overlap{fft_overlap}"
+
     # 1. Convert wavs to chunks
     # Check options
     if ("options" in locals()) and ("training" in options.keys()) and ("validation" in options.keys()):
@@ -153,11 +168,6 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
             txt2wav(file, destination_path_wav, sample_rate, wav_chunks)
 
     #2. Convert chunks to spectrograms
-        subdir_name = f"ch{wav_chunks}_" \
-                      f"res{spectrogram_resolution[0]}x{spectrogram_resolution[1]}_" \
-                      f"octaves{''.join(map(str,octaves))}_" \
-                      f"fft{fft_len}_" \
-                      f"overlap{fft_overlap}"
         destination_path_spectrogram = PATHS["PATH_SPECTROGRAMS"].joinpath(db).joinpath(subdir_name)
         destination_path_spectrogram.mkdir(parents=True, exist_ok=True)
         print("Proceeeding with spectrograms...")
@@ -182,6 +192,69 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
                 plt.close("all")
 
     # 3. Create training/validation datasets
+    if ("options" in locals()) and ("training" in options.keys()) and ("validation" in options.keys()):
+        destination_path_dataset = PATHS["PATH_DATASET"]\
+            .joinpath(f"{subdir_name}_t_{options['training']}_v_{options['validation']}")
+        if options["training"] == options["validation"]:
+
+            source_files = list(PATHS["PATH_SPECTROGRAMS"].joinpath(options["training"]).joinpath(subdir_name).iterdir())
+
+            # Obtaining unique samples (humans) in random order
+            unique_samples_all = list({str(name.name).split("_")[0] for name in source_files})
+            unique_samples_all.sort()
+            shuffle(unique_samples_all)
+            unique_samples = {
+                "training": unique_samples_all[
+                            :int(train_to_val_ratio / (train_to_val_ratio + 1) * len(unique_samples_all))],
+                "validation": unique_samples_all[
+                              int(train_to_val_ratio / (train_to_val_ratio + 1) * len(unique_samples_all)) - 1:]
+            }
+
+            # Splitting samples
+            for key in unique_samples.keys():
+                destination_path_dataset.joinpath(key).mkdir(exist_ok=True, parents=True)
+                for sample in unique_samples[key]:
+                    for file in source_files:
+                        if sample in str(file):
+                            shutil.copy(file, destination_path_dataset.joinpath(key).joinpath(file.name))
+
+        else:
+            # All training and validation files
+            source_files = {
+                "training": list(PATHS["PATH_SPECTROGRAMS"].joinpath(options["training"])
+                    .joinpath(subdir_name).iterdir()),
+                "validation": list(PATHS["PATH_SPECTROGRAMS"].joinpath(options["validation"])
+                    .joinpath(subdir_name).iterdir()),
+            }
+            # Obtaining unique samples (humans) in random order
+            for key in source_files.keys():
+                destination_path_dataset.joinpath(key).mkdir(parents=True, exist_ok=True)
+                for file in source_files[key]:
+                    shutil.copy(file, destination_path_dataset.joinpath(key).joinpath(file.name))
+
+    else: # non-specified
+        destination_path_dataset = PATHS["PATH_DATASET"]\
+            .joinpath(f"{subdir_name}_t_mixed_v_mixed")
+        source_files = list(PATHS["PATH_SPECTROGRAMS"].joinpath("svd").joinpath(subdir_name).iterdir()) + \
+                       list(PATHS["PATH_SPECTROGRAMS"].joinpath("voiced").joinpath(subdir_name).iterdir())
+
+        # Obtaining unique samples (humans) in random order
+        unique_samples_all = list({str(name.name).split("_")[0] for name in source_files})
+        unique_samples_all.sort()
+        shuffle(unique_samples_all)
+        unique_samples = {
+            "training": unique_samples_all[:int(train_to_val_ratio / (train_to_val_ratio + 1) * len(unique_samples_all))],
+            "validation": unique_samples_all[int(train_to_val_ratio / (train_to_val_ratio + 1) * len(unique_samples_all)) - 1:]
+        }
+
+        # Splitting samples
+        for key in unique_samples.keys():
+            destination_path_dataset.joinpath(key).mkdir(exist_ok=True, parents=True)
+            for sample in unique_samples[key]:
+                for file in source_files:
+                    if sample in str(file):
+                        shutil.copy(file, destination_path_dataset.joinpath(key).joinpath(file.name))
+
 
 if os.name == "nt":
     from config import WINDOWS_PATHS as PATHS
@@ -198,7 +271,7 @@ for fft_len in fft_lens:
             for image_size in image_sizes:
 
                 print(f"Entering data_pipeline.... {image_size}")
-                path = data_pipeline(chunk, [3, 4, 5, 6], balance, fft_len, fft_len // 2, image_size, training="svd", validation="voiced")
+                path = data_pipeline(chunk, [3, 4, 5, 6], balance, fft_len, fft_len // 2, image_size, training="voiced", validation="svd")
                 print("Exited data_pipeline....")
 
                 # train = tf.keras.preprocessing.image_dataset_from_directory(
