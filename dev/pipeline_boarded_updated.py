@@ -255,6 +255,8 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
                     if sample in str(file):
                         shutil.copy(file, destination_path_dataset.joinpath(key).joinpath(file.name))
 
+    return destination_path_dataset
+
 
 if os.name == "nt":
     from config import WINDOWS_PATHS as PATHS
@@ -265,71 +267,74 @@ image_sizes = [(80, 80)]
 chunks = [5]
 balances = [False]
 fft_lens = [256]
+training_db = "voiced"
+validation_db = "svd"
 for fft_len in fft_lens:
     for balance in balances:
         for chunk in chunks:
             for image_size in image_sizes:
 
                 print(f"Entering data_pipeline.... {image_size}")
-                path = data_pipeline(chunk, [3, 4, 5, 6], balance, fft_len, fft_len // 2, image_size, training="voiced", validation="svd")
+                path = data_pipeline(chunk, [3, 4, 5, 6], balance, fft_len, fft_len // 2, image_size,
+                                     training=training_db, validation=validation_db)
                 print("Exited data_pipeline....")
 
-                # train = tf.keras.preprocessing.image_dataset_from_directory(
-                #   path.joinpath("training"),
-                #
-                #   image_size=image_size,
-                #   batch_size=32)
-                #
-                # print("Train set loaded")
-                # val = tf.keras.preprocessing.image_dataset_from_directory(
-                #   path.joinpath("validation"),
-                #   image_size=image_size)
-                # print("Validation set loaded")
-                # train = train.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
-                # val = val.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
-                # print("Sets transformed...")
-                # model = create_model(image_size[0])
-                # focal_loss = tf.keras.losses.BinaryCrossentropy()
-                # #focal_loss = tf.keras.losses.BinaryFocalCrossentropy(apply_class_balancing=False)
-                # lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-                #     initial_learning_rate=1e-2,
-                #     decay_steps=1000000,
-                #     decay_rate=0.99)
-                # optimizer_cnn = tf.keras.optimizers.Adam(learning_rate=0.00001)
-                # log_dir = "logs"
-                # # tensorboard stuff
-                # from tensorflow.keras.callbacks import TensorBoard
-                #
-                # tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="logs")
-                # # callbacks = [TensorBoard(log_dir=log_dir,
-                # #                          histogram_freq=1,
-                # #                          write_graph=True,
-                # #                          write_images=False,
-                # #                          update_freq='epoch',
-                # #                          profile_batch=2,
-                # #                          embeddings_freq=1)]
-                # file_writer_cm = tf.summary.create_file_writer(log_dir + '/cm')
-                # cm_callback = tf.keras.callbacks.LambdaCallback(on_epoch_end=log_confusion_matrix)
-                # metrics_list = ["accuracy",
-                #                 tf.keras.metrics.TruePositives(),
-                #                 tf.keras.metrics.TrueNegatives(),
-                #                 tf.keras.metrics.FalsePositives(),
-                #                 tf.keras.metrics.FalseNegatives(),
-                #                 tf.keras.metrics.Precision(),
-                #                 tf.keras.metrics.Recall(),
-                #                 tf.keras.metrics.AUC()]
-                # model.compile(loss=focal_loss, optimizer=optimizer_cnn, metrics=metrics_list)
-                # model.summary()
-                # # Display the model summary.
-                # history = model.fit(train, validation_data=val, epochs=1000, batch_size=8, callbacks=[tensorboard_callback]).history
-                # healthy_validation = len(list(path.joinpath("validation", "healthy").glob("*")))
-                # nonhealthy_validation = len(list(path.joinpath("validation", "nonhealthy").glob("*")))
-                #
-                # with open("result_focal_exps.txt", "a") as result_file:
-                #     result_file.write(f"cnn01_005, val acc max: {max(history['val_accuracy'])}, acc max: {max(history['accuracy'])}"
-                #                       f" balance: {balance},"
-                #                       f" fft_len: {fft_len},"
-                #                       f" chunks: {chunk},"
-                #                       f" image_size: {image_size},"
-                #                       f"val_ratio: {nonhealthy_validation / (nonhealthy_validation + healthy_validation)}\n")
-                # print(history.keys())
+                train = tf.keras.preprocessing.image_dataset_from_directory(
+                  path.joinpath("training"),
+
+                  image_size=image_size,
+                  batch_size=32)
+
+                print("Train set loaded")
+                val = tf.keras.preprocessing.image_dataset_from_directory(
+                  path.joinpath("validation"),
+                  image_size=image_size)
+                print("Validation set loaded")
+                train = train.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
+                val = val.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
+                print("Sets transformed...")
+                model = create_model(image_size[0])
+                focal_loss = tf.keras.losses.BinaryCrossentropy()
+                #focal_loss = tf.keras.losses.BinaryFocalCrossentropy(apply_class_balancing=False)
+                lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+                    initial_learning_rate=1e-2,
+                    decay_steps=1000000,
+                    decay_rate=0.99)
+                optimizer_cnn = tf.keras.optimizers.Adam(learning_rate=0.00001)
+                log_dir = "logs"
+                # tensorboard stuff
+                from tensorflow.keras.callbacks import TensorBoard
+
+                tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="logs")
+                # callbacks = [TensorBoard(log_dir=log_dir,
+                #                          histogram_freq=1,
+                #                          write_graph=True,
+                #                          write_images=False,
+                #                          update_freq='epoch',
+                #                          profile_batch=2,
+                #                          embeddings_freq=1)]
+                file_writer_cm = tf.summary.create_file_writer(log_dir + '/cm')
+                cm_callback = tf.keras.callbacks.LambdaCallback(on_epoch_end=log_confusion_matrix)
+                metrics_list = ["accuracy",
+                                tf.keras.metrics.TruePositives(),
+                                tf.keras.metrics.TrueNegatives(),
+                                tf.keras.metrics.FalsePositives(),
+                                tf.keras.metrics.FalseNegatives(),
+                                tf.keras.metrics.Precision(),
+                                tf.keras.metrics.Recall(),
+                                tf.keras.metrics.AUC()]
+                model.compile(loss=focal_loss, optimizer=optimizer_cnn, metrics=metrics_list)
+                model.summary()
+                # Display the model summary.
+                history = model.fit(train, validation_data=val, epochs=1000, batch_size=8, callbacks=[tensorboard_callback]).history
+                healthy_validation = len(list(path.joinpath("validation", "healthy").glob("*")))
+                nonhealthy_validation = len(list(path.joinpath("validation", "nonhealthy").glob("*")))
+
+                with open("result_focal_exps.txt", "a") as result_file:
+                    result_file.write(f"cnn01_005, val acc max: {max(history['val_accuracy'])}, acc max: {max(history['accuracy'])}"
+                                      f" balance: {balance},"
+                                      f" fft_len: {fft_len},"
+                                      f" chunks: {chunk},"
+                                      f" image_size: {image_size},"
+                                      f"val_ratio: {nonhealthy_validation / (nonhealthy_validation + healthy_validation)}\n")
+                print(history.keys())
