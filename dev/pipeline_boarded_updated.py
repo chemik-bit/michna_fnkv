@@ -170,7 +170,6 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
     #2. Convert chunks to spectrograms
         destination_path_spectrogram = PATHS["PATH_SPECTROGRAMS"].joinpath(db).joinpath(subdir_name)
         destination_path_spectrogram.mkdir(parents=True, exist_ok=True)
-        print("Proceeeding with spectrograms...")
         for sound_file in destination_path_wav.iterdir():
             if not destination_path_spectrogram.joinpath(f"{sound_file.stem}.png").exists():
                 # Create spectrogram
@@ -195,7 +194,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
     if ("options" in locals()) and ("training" in options.keys()) and ("validation" in options.keys()):
         destination_path_dataset = PATHS["PATH_DATASET"]\
             .joinpath(f"{subdir_name}_t_{options['training']}_v_{options['validation']}")
-        if options["training"] == options["validation"]:
+        if options["training"] == options["validation"] and not destination_path_dataset.exists():
 
             source_files = list(PATHS["PATH_SPECTROGRAMS"].joinpath(options["training"]).joinpath(subdir_name).iterdir())
 
@@ -212,13 +211,19 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
 
             # Splitting samples
             for key in unique_samples.keys():
-                destination_path_dataset.joinpath(key).mkdir(exist_ok=True, parents=True)
+                destination_path_dataset.joinpath(key).joinpath("healthy").mkdir(exist_ok=True, parents=True)
+                destination_path_dataset.joinpath(key).joinpath("nonhealthy").mkdir(exist_ok=True, parents=True)
                 for sample in unique_samples[key]:
                     for file in source_files:
                         if sample in str(file):
-                            shutil.copy(file, destination_path_dataset.joinpath(key).joinpath(file.name))
+                            if "_healthy_" in str(file):
+                                shutil.copy(file, destination_path_dataset.joinpath(key).joinpath("healthy")
+                                            .joinpath(file.name))
+                            else:
+                                shutil.copy(file, destination_path_dataset.joinpath(key).joinpath("nonhealthy")
+                                            .joinpath(file.name))
 
-        else:
+        elif not destination_path_dataset.exists():
             # All training and validation files
             source_files = {
                 "training": list(PATHS["PATH_SPECTROGRAMS"].joinpath(options["training"])
@@ -228,11 +233,19 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
             }
             # Obtaining unique samples (humans) in random order
             for key in source_files.keys():
-                destination_path_dataset.joinpath(key).mkdir(parents=True, exist_ok=True)
+                destination_path_dataset.joinpath(key).joinpath("healthy").mkdir(exist_ok=True, parents=True)
+                destination_path_dataset.joinpath(key).joinpath("nonhealthy").mkdir(exist_ok=True, parents=True)
                 for file in source_files[key]:
-                    shutil.copy(file, destination_path_dataset.joinpath(key).joinpath(file.name))
+                    if "_healthy_" in str(file):
+                        shutil.copy(file, destination_path_dataset.joinpath(key).joinpath("healthy")
+                                    .joinpath(file.name))
+                    else:
+                        shutil.copy(file, destination_path_dataset.joinpath(key).joinpath("nonhealthy")
+                                    .joinpath(file.name))
+        else:
+            print(f"{destination_path_dataset.name} configuration already existing, skipping dataset creation...")
 
-    else: # non-specified
+    elif not destination_path_dataset.exists(): # non-specified
         destination_path_dataset = PATHS["PATH_DATASET"]\
             .joinpath(f"{subdir_name}_t_mixed_v_mixed")
         source_files = list(PATHS["PATH_SPECTROGRAMS"].joinpath("svd").joinpath(subdir_name).iterdir()) + \
@@ -249,11 +262,20 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
 
         # Splitting samples
         for key in unique_samples.keys():
-            destination_path_dataset.joinpath(key).mkdir(exist_ok=True, parents=True)
+            print(key)
+            destination_path_dataset.joinpath(key).joinpath("healthy").mkdir(exist_ok=True, parents=True)
+            destination_path_dataset.joinpath(key).joinpath("nonhealthy").mkdir(exist_ok=True, parents=True)
             for sample in unique_samples[key]:
                 for file in source_files:
                     if sample in str(file):
-                        shutil.copy(file, destination_path_dataset.joinpath(key).joinpath(file.name))
+                        if "_healthy_" in str(file):
+                            shutil.copy(file, destination_path_dataset.joinpath(key).joinpath("healthy")
+                                        .joinpath(file.name))
+                        else:
+                            shutil.copy(file, destination_path_dataset.joinpath(key).joinpath("nonhealthy")
+                                        .joinpath(file.name))
+    else:
+        print(f"{destination_path_dataset.name} configuration already existing, skipping dataset creation...")
 
     return destination_path_dataset
 
@@ -267,8 +289,8 @@ image_sizes = [(80, 80)]
 chunks = [5]
 balances = [False]
 fft_lens = [256]
-training_db = "voiced"
-validation_db = "svd"
+training_db = "svd"
+validation_db = "voiced"
 for fft_len in fft_lens:
     for balance in balances:
         for chunk in chunks:
@@ -277,6 +299,7 @@ for fft_len in fft_lens:
                 print(f"Entering data_pipeline.... {image_size}")
                 path = data_pipeline(chunk, [3, 4, 5, 6], balance, fft_len, fft_len // 2, image_size,
                                      training=training_db, validation=validation_db)
+                # path = data_pipeline(chunk, [3, 4, 5, 6], balance, fft_len, fft_len // 2, image_size)
                 print("Exited data_pipeline....")
 
                 train = tf.keras.preprocessing.image_dataset_from_directory(
