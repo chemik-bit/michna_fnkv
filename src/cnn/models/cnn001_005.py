@@ -11,20 +11,20 @@ def create_model(input_size):
     x = tf.keras.Sequential()
 
 #    x = tf.keras.layers.BatchNormalization()(input)
-    x.add(layers.Conv2D(32, (5, 5), activation="relu", padding="same",input_shape=(input_size, input_size, 3)))
+    x.add(layers.Conv2D(100, (5, 5), activation="relu", padding="same",input_shape=(input_size, input_size, 3)))
+    x.add(layers.MaxPooling2D(pool_size=(2, 2), strides=1))
+
+    x.add(layers.Conv2D(100, (5, 5), activation="relu", padding="same"))
+    x.add(layers.MaxPooling2D(pool_size=(2, 2), strides=1))
+
+    x.add(layers.Conv2D(100, (5, 5), activation="relu", padding="same"))
+
     x.add(layers.MaxPooling2D(pool_size=(2, 2), strides=2))
-
-    x.add(layers.Conv2D(32, (5, 5), activation="relu", padding="same"))
-    x.add(layers.MaxPooling2D(pool_size=(2, 2), strides=2))
-
-    x.add(layers.Conv2D(32, (5, 5), activation="relu", padding="same"))
-
-    x.add(layers.MaxPooling2D(pool_size=(2, 2), strides=2))
-
+    x.add(layers.Dropout(.5))
 
     x.add(layers.Flatten())
-    x.add(layers.Dense(600, activation="relu",  kernel_regularizer=regularizers.L1(0.01)))
-    x.add(layers.Dense(600, activation="relu",  kernel_regularizer=regularizers.L1(0.01)))
+    x.add(layers.Dense(100, activation="relu",  kernel_regularizer=regularizers.L1(0.01)))
+    #x.add(layers.Dense(600, activation="relu",  kernel_regularizer=regularizers.L1(0.01)))
     #x.add(layers.Dense(4096, activation="relu"))
     x.add(layers.Dense(1, activation="sigmoid"))
 

@@ -17,7 +17,7 @@ from scipy.io import wavfile
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics import confusion_matrix
-from src.cnn.models.cnn001 import create_model
+from src.cnn.models.cnn003 import create_model
 from utilities.converters import txt2wav
 from utilities.octave_filter_bank import octave_filtering
 import itertools
@@ -285,7 +285,7 @@ if os.name == "nt":
 else:
     from config import CENTOS_PATHS as PATHS
 os.chdir(sys.path[1])
-image_sizes = [(80, 80)]
+image_sizes = [(26, 399)]
 chunks = [5]
 balances = [False]
 fft_lens = [256]
@@ -306,7 +306,7 @@ for fft_len in fft_lens:
                   path.joinpath("training"),
 
                   image_size=image_size,
-                  batch_size=32)
+                  batch_size=8)
 
                 print("Train set loaded")
                 val = tf.keras.preprocessing.image_dataset_from_directory(
