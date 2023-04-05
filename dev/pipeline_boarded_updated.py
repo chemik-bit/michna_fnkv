@@ -17,7 +17,8 @@ from scipy.io import wavfile
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics import confusion_matrix
-from src.cnn.models.cnn003 import create_model
+# from src.cnn.models.cnn003 import create_model
+import src.cnn.models.cnn003 as classifier
 from utilities.converters import txt2wav
 from utilities.octave_filter_bank import octave_filtering
 import itertools
@@ -287,12 +288,15 @@ if os.name == "nt":
 else:
     from config import CENTOS_PATHS as PATHS
 os.chdir(sys.path[1])
-image_sizes = [(26, 399)]
+image_sizes = [(100, 100)]
 chunks = [8]
 balances = [False]
 fft_lens = [256]
 training_db = "svd"
 validation_db = "voiced"
+batch_size_exp = 8
+max_epochs = 2
+learning_rate_exp = 0.00001
 for fft_len in fft_lens:
     for balance in balances:
         for chunk in chunks:
@@ -308,7 +312,7 @@ for fft_len in fft_lens:
                   path.joinpath("training"),
 
                   image_size=image_size,
-                  batch_size=8)
+                  batch_size=batch_size_exp)
 
                 print("Train set loaded")
                 val = tf.keras.preprocessing.image_dataset_from_directory(
@@ -318,14 +322,14 @@ for fft_len in fft_lens:
                 train = train.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
                 val = val.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
                 print("Sets transformed...")
-                model = create_model(image_size[0])
+                model = classifier.create_model(image_size[0]) # TODO two params needed (height x width)
                 focal_loss = tf.keras.losses.BinaryCrossentropy()
                 #focal_loss = tf.keras.losses.BinaryFocalCrossentropy(apply_class_balancing=False)
                 lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
                     initial_learning_rate=1e-2,
                     decay_steps=1000000,
                     decay_rate=0.99)
-                optimizer_cnn = tf.keras.optimizers.Adam(learning_rate=0.00001)
+                optimizer_cnn = tf.keras.optimizers.Adam(learning_rate=learning_rate_exp)
                 log_dir = "logs"
                 # tensorboard stuff
                 from tensorflow.keras.callbacks import TensorBoard
@@ -351,15 +355,22 @@ for fft_len in fft_lens:
                 model.compile(loss=focal_loss, optimizer=optimizer_cnn, metrics=metrics_list)
                 model.summary()
                 # Display the model summary.
-                history = model.fit(train, validation_data=val, epochs=1000, batch_size=8, callbacks=[tensorboard_callback]).history
+                history = model.fit(train, validation_data=val, epochs=max_epochs, batch_size=batch_size_exp, callbacks=[tensorboard_callback]).history
                 healthy_validation = len(list(path.joinpath("validation", "healthy").glob("*")))
                 nonhealthy_validation = len(list(path.joinpath("validation", "nonhealthy").glob("*")))
 
-                with open("result_focal_exps.txt", "a") as result_file:
-                    result_file.write(f"cnn01_005, val acc max: {max(history['val_accuracy'])}, acc max: {max(history['accuracy'])}"
+                with open("results.txt", "a") as result_file:
+                    result_file.write(f"{classifier.__name__},"
+                                      f"training set: {path.joinpath('training')},"
+                                      f"val set: {path.joinpath('validation')},"
+                                      f"{focal_loss._name_scope},"
+                                      f"{optimizer_cnn._name},"
+                                      f"lr: {learning_rate_exp},"
+                                      f"val auc max: {max(history['val_auc'])}, auc max: {max(history['auc'])},"
                                       f" balance: {balance},"
                                       f" fft_len: {fft_len},"
                                       f" chunks: {chunk},"
                                       f" image_size: {image_size},"
                                       f"val_ratio: {nonhealthy_validation / (nonhealthy_validation + healthy_validation)}\n")
-                print(history.keys())
+                # print(history)
+                # print(history.keys())
