@@ -172,6 +172,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
         destination_path_spectrogram = PATHS["PATH_SPECTROGRAMS"].joinpath(db).joinpath(subdir_name)
         destination_path_spectrogram.mkdir(parents=True, exist_ok=True)
         print("Converting WAV files to spectrograms...")
+        # TODO convert this stuff to function.. already implemented in utilities.converters
         for sound_file in destination_path_wav.iterdir():
             if not destination_path_spectrogram.joinpath(f"{sound_file.stem}.png").exists():
                 # Create spectrogram
@@ -187,7 +188,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
                 plot_axes = plt.Axes(fig, [0., 0., 1., 1.])
                 plot_axes.set_axis_off()
                 fig.add_axes(plot_axes)
-                plot_axes.pcolormesh(times, frequencies, spectrogram, cmap="hsv")
+                plot_axes.pcolormesh(times, frequencies, spectrogram, cmap="grayscale")
                 plt.savefig(destination_path_spectrogram.joinpath(f"{sound_file.stem}.png"), format="png",
                             bbox_inches='tight', pad_inches=0, dpi=300)
                 plt.close("all")
