@@ -162,7 +162,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
     for db in used_dbs:
         source_path = PATHS[f"PATH_{db.upper()}_RENAMED"]
         destination_path_wav = PATHS["PATH_WAV"].joinpath(db).joinpath(str(wav_chunks))
-
+        print(f"Converting PATH_{db.upper()}_RENAMED to WAV...")
         for file in source_path.iterdir():
             sample_rate = int(file.stem.split("_")[-1])
             txt2wav(file, destination_path_wav, sample_rate, wav_chunks)
@@ -170,6 +170,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
     #2. Convert chunks to spectrograms
         destination_path_spectrogram = PATHS["PATH_SPECTROGRAMS"].joinpath(db).joinpath(subdir_name)
         destination_path_spectrogram.mkdir(parents=True, exist_ok=True)
+        print("Converting WAV files to spectrograms...")
         for sound_file in destination_path_wav.iterdir():
             if not destination_path_spectrogram.joinpath(f"{sound_file.stem}.png").exists():
                 # Create spectrogram
@@ -190,6 +191,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
                             bbox_inches='tight', pad_inches=0, dpi=300)
                 plt.close("all")
 
+    print("Dataset splitting...")
     # 3. Create training/validation datasets
     if ("options" in locals()) and ("training" in options.keys()) and ("validation" in options.keys()):
         destination_path_dataset = PATHS["PATH_DATASET"]\
@@ -286,7 +288,7 @@ else:
     from config import CENTOS_PATHS as PATHS
 os.chdir(sys.path[1])
 image_sizes = [(26, 399)]
-chunks = [5]
+chunks = [8]
 balances = [False]
 fft_lens = [256]
 training_db = "svd"
@@ -297,11 +299,11 @@ for fft_len in fft_lens:
             for image_size in image_sizes:
 
                 print(f"Entering data_pipeline.... {image_size}")
-                path = data_pipeline(chunk, [3, 4, 5, 6], balance, fft_len, fft_len // 2, image_size,
+                path = data_pipeline(chunk, [3, 4, 5], balance, fft_len, fft_len // 2, image_size,
                                      training=training_db, validation=validation_db)
                 # path = data_pipeline(chunk, [3, 4, 5, 6], balance, fft_len, fft_len // 2, image_size)
                 print("Exited data_pipeline....")
-
+                print("Loading datasets....")
                 train = tf.keras.preprocessing.image_dataset_from_directory(
                   path.joinpath("training"),
 
