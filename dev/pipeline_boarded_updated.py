@@ -113,6 +113,7 @@ def transform_image(image, label):
     :param label: image class label
     :return: normalized image as tf.float32 and its label
     """
+    image = tf.image.rgb_to_grayscale(image)
     return tf.cast(image, tf.float32) / 255., label
 
 
@@ -324,7 +325,7 @@ for fft_len in fft_lens:
                 train = train.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
                 val = val.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
                 print("Sets transformed...")
-                model = classifier.create_model(image_size[0]) # TODO two params needed (height x width)
+                model = classifier.create_model(image_size)
                 focal_loss = tf.keras.losses.BinaryCrossentropy()
                 #focal_loss = tf.keras.losses.BinaryFocalCrossentropy(apply_class_balancing=False)
                 lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(

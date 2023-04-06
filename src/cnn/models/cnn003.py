@@ -9,7 +9,7 @@ def create_model(input_size):
     x = tf.keras.Sequential()
     #x.add(layers.Input((input_size, input_size, 1)))
     #    x = tf.keras.layers.BatchNormalization()(input)
-    x.add(layers.Conv2D(16, (3, 3), activation="relu", padding="same", input_shape = (input_size, input_size, 3)))
+    x.add(layers.Conv2D(16, (3, 3), activation="relu", padding="same", input_shape = (input_size[0], input_size[1], 1)))
     x.add(layers.BatchNormalization())
     x.add(layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
     x.add(layers.Conv2D(32, (3, 3), activation="relu", padding="same"))
