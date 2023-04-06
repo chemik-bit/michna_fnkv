@@ -188,7 +188,8 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
                 plot_axes = plt.Axes(fig, [0., 0., 1., 1.])
                 plot_axes.set_axis_off()
                 fig.add_axes(plot_axes)
-                plot_axes.pcolormesh(times, frequencies, spectrogram, cmap="grayscale")
+                plot_axes.pcolormesh(times, frequencies, spectrogram, cmap="binary")
+                plt.gray()
                 plt.savefig(destination_path_spectrogram.joinpath(f"{sound_file.stem}.png"), format="png",
                             bbox_inches='tight', pad_inches=0, dpi=300)
                 plt.close("all")
