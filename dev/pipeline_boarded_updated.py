@@ -7,6 +7,7 @@ Complete datapipeline for CNN classification.
 4. Load training/validation datasets as tf.dataset.Data
 5. Train CNN model and validate
 """
+import importlib
 import os
 import sys
 import csv
@@ -18,7 +19,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics import confusion_matrix
 # from src.cnn.models.cnn003 import create_model
-import src.cnn.models.cnn003 as classifier
+#import src.cnn.models.cnn001 as classifier
 from utilities.converters import txt2wav
 from utilities.octave_filter_bank import octave_filtering
 import itertools
@@ -295,85 +296,95 @@ image_sizes = [(100, 100)]
 chunks = [8]
 balances = [False]
 fft_lens = [256]
+fft_overlaps = [125]
 training_db = "svd"
 validation_db = "voiced"
 batch_size_exp = 8
-max_epochs = 2
+max_epochs = 20
 learning_rate_exp = 0.00001
-for fft_len in fft_lens:
-    for balance in balances:
-        for chunk in chunks:
-            for image_size in image_sizes:
+models = ["src.cnn.models.cnn001",
+          "src.cnn.models.cnn001_001",
+          "src.cnn.models.cnn001_002",
+          "src.cnn.models.cnn001_003",
+          "src.cnn.models.cnn001_004"]
+create_functions = {}
+for eval_model in models:
 
-                print(f"Entering data_pipeline.... {image_size}")
-                path = data_pipeline(chunk, [3, 4, 5], balance, fft_len, fft_len // 2, image_size,
-                                     training=training_db, validation=validation_db)
-                # path = data_pipeline(chunk, [3, 4, 5, 6], balance, fft_len, fft_len // 2, image_size)
-                print("Exited data_pipeline....")
-                print("Loading datasets....")
-                train = tf.keras.preprocessing.image_dataset_from_directory(
-                  path.joinpath("training"),
+    classifier = importlib.import_module(eval_model)
+    for fft_len in fft_lens:
+        for balance in balances:
+            for chunk in chunks:
+                for image_size in image_sizes:
 
-                  image_size=image_size,
-                  batch_size=batch_size_exp)
+                    print(f"Entering data_pipeline.... {image_size}")
+                    path = data_pipeline(chunk, [3, 4, 5], balance, fft_len, fft_len // 2, image_size,
+                                         training=training_db, validation=validation_db)
+                    # path = data_pipeline(chunk, [3, 4, 5, 6], balance, fft_len, fft_len // 2, image_size)
+                    print("Exited data_pipeline....")
+                    print("Loading datasets....")
+                    train = tf.keras.preprocessing.image_dataset_from_directory(
+                      path.joinpath("training"),
 
-                print("Train set loaded")
-                val = tf.keras.preprocessing.image_dataset_from_directory(
-                  path.joinpath("validation"),
-                  image_size=image_size)
-                print("Validation set loaded")
-                train = train.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
-                val = val.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
-                print("Sets transformed...")
-                model = classifier.create_model(image_size)
-                focal_loss = tf.keras.losses.BinaryCrossentropy()
-                #focal_loss = tf.keras.losses.BinaryFocalCrossentropy(apply_class_balancing=False)
-                lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-                    initial_learning_rate=1e-2,
-                    decay_steps=1000000,
-                    decay_rate=0.99)
-                optimizer_cnn = tf.keras.optimizers.Adam(learning_rate=learning_rate_exp)
-                log_dir = "logs"
-                # tensorboard stuff
-                from tensorflow.keras.callbacks import TensorBoard
+                      image_size=image_size,
+                      batch_size=batch_size_exp)
 
-                tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="logs")
-                # callbacks = [TensorBoard(log_dir=log_dir,
-                #                          histogram_freq=1,
-                #                          write_graph=True,
-                #                          write_images=False,
-                #                          update_freq='epoch',
-                #                          profile_batch=2,
-                #                          embeddings_freq=1)]
-                file_writer_cm = tf.summary.create_file_writer(log_dir + '/cm')
-                cm_callback = tf.keras.callbacks.LambdaCallback(on_epoch_end=log_confusion_matrix)
-                metrics_list = ["accuracy",
-                                tf.keras.metrics.TruePositives(),
-                                tf.keras.metrics.TrueNegatives(),
-                                tf.keras.metrics.FalsePositives(),
-                                tf.keras.metrics.FalseNegatives(),
-                                tf.keras.metrics.Precision(),
-                                tf.keras.metrics.Recall(),
-                                tf.keras.metrics.AUC()]
-                model.compile(loss=focal_loss, optimizer=optimizer_cnn, metrics=metrics_list)
-                model.summary()
-                # Display the model summary.
-                history = model.fit(train, validation_data=val, epochs=max_epochs, batch_size=batch_size_exp, callbacks=[tensorboard_callback]).history
-                healthy_validation = len(list(path.joinpath("validation", "healthy").glob("*")))
-                nonhealthy_validation = len(list(path.joinpath("validation", "nonhealthy").glob("*")))
+                    print("Train set loaded")
+                    val = tf.keras.preprocessing.image_dataset_from_directory(
+                      path.joinpath("validation"),
+                      image_size=image_size)
+                    print("Validation set loaded")
+                    train = train.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
+                    val = val.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
+                    print("Sets transformed...")
+                    model = classifier.create_model(image_size)
+                    focal_loss = tf.keras.losses.BinaryCrossentropy()
+                    #focal_loss = tf.keras.losses.BinaryFocalCrossentropy(apply_class_balancing=False)
+                    lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+                        initial_learning_rate=1e-2,
+                        decay_steps=1000000,
+                        decay_rate=0.99)
+                    optimizer_cnn = tf.keras.optimizers.Adam(learning_rate=learning_rate_exp)
+                    log_dir = "logs"
+                    # tensorboard stuff
+                    from tensorflow.keras.callbacks import TensorBoard
 
-                with open("results.txt", "a") as result_file:
-                    result_file.write(f"{classifier.__name__},"
-                                      f"training set: {path.joinpath('training')},"
-                                      f"val set: {path.joinpath('validation')},"
-                                      f"{focal_loss._name_scope},"
-                                      f"{optimizer_cnn._name},"
-                                      f"lr: {learning_rate_exp},"
-                                      f"val auc max: {max(history['val_auc'])}, auc max: {max(history['auc'])},"
-                                      f" balance: {balance},"
-                                      f" fft_len: {fft_len},"
-                                      f" chunks: {chunk},"
-                                      f" image_size: {image_size},"
-                                      f"val_ratio: {nonhealthy_validation / (nonhealthy_validation + healthy_validation)}\n")
-                # print(history)
-                # print(history.keys())
+                    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="logs")
+                    # callbacks = [TensorBoard(log_dir=log_dir,
+                    #                          histogram_freq=1,
+                    #                          write_graph=True,
+                    #                          write_images=False,
+                    #                          update_freq='epoch',
+                    #                          profile_batch=2,
+                    #                          embeddings_freq=1)]
+                    file_writer_cm = tf.summary.create_file_writer(log_dir + '/cm')
+                    cm_callback = tf.keras.callbacks.LambdaCallback(on_epoch_end=log_confusion_matrix)
+                    metrics_list = ["accuracy",
+                                    tf.keras.metrics.TruePositives(),
+                                    tf.keras.metrics.TrueNegatives(),
+                                    tf.keras.metrics.FalsePositives(),
+                                    tf.keras.metrics.FalseNegatives(),
+                                    tf.keras.metrics.Precision(),
+                                    tf.keras.metrics.Recall(),
+                                    tf.keras.metrics.AUC()]
+                    model.compile(loss=focal_loss, optimizer=optimizer_cnn, metrics=metrics_list)
+                    model.summary()
+                    # Display the model summary.
+                    history = model.fit(train, validation_data=val, epochs=max_epochs, batch_size=batch_size_exp, callbacks=[tensorboard_callback]).history
+                    healthy_validation = len(list(path.joinpath("validation", "healthy").glob("*")))
+                    nonhealthy_validation = len(list(path.joinpath("validation", "nonhealthy").glob("*")))
+
+                    with open("results.txt", "a") as result_file:
+                        result_file.write(f"{classifier.__name__},"
+                                          f"training set: {path.joinpath('training')},"
+                                          f"val set: {path.joinpath('validation')},"
+                                          f"{focal_loss._name_scope},"
+                                          f"{optimizer_cnn._name},"
+                                          f"lr: {learning_rate_exp},"
+                                          f"val auc max: {max(history['val_auc'])}, auc max: {max(history['auc'])},"
+                                          f" balance: {balance},"
+                                          f" fft_len: {fft_len},"
+                                          f" chunks: {chunk},"
+                                          f" image_size: {image_size},"
+                                          f"val_ratio: {nonhealthy_validation / (nonhealthy_validation + healthy_validation)}\n")
+                    # print(history)
+                    # print(history.keys())
