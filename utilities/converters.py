@@ -22,15 +22,20 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
     :param destination_path: path to folder where the spectrogram is saved. (pathlib)
     :return: None
     """
+
     sample_rate, samples = wavfile.read(source_path)
     # frequencies, times, spectrogram = signal.spectrogram(samples, fs=sample_rate,
     #                                                      scaling="spectrum", nfft=None,
     #                                                      mode="psd", noverlap=fft_window_length // 2,
     #                                                      window=np.hamming(fft_window_length))
-    frequencies, times, spectrogram = signal.spectrogram(samples, sample_rate, window=np.hamming(fft_window_length),
-                                                         noverlap=fft_window_length -1)
-    plt.pcolormesh(times, frequencies, spectrogram, cmap="viridis")
+    frequencies, times, spectrogram = signal.spectrogram(samples, sample_rate, window=np.hamming(int(.120*sample_rate)),
+                                                         noverlap=128)
+    times = times.transpose()
+    frequencies_cut = frequencies[:np.count_nonzero(frequencies <= 2000)].transpose()
+    spectrogram_cut = spectrogram[:np.count_nonzero(frequencies <= 2000)].transpose()
+    plt.pcolormesh(frequencies_cut, times, spectrogram_cut, cmap="gray")
     plt.axis("off")
+
     plt.savefig(destination_path.joinpath(source_path.stem + ".png"), dpi=300, format="png",
                 bbox_inches='tight', pad_inches=0)
     plt.close("all")
