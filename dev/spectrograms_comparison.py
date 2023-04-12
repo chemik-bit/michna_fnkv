@@ -32,16 +32,18 @@ plt.pcolormesh(times, frequencies, 10 * np.log10(spectrogram), cmap="viridis")
 plt.ylabel('Frequency [Hz]')
 plt.xlabel('Time [sec]')
 
-
+plt.title("shit 1")
 plt.figure()
 values, ybins, xbins, im = plt.specgram(samples,
                                         mode="psd", Fs=sample_rate, window=np.hamming(256),
                                         scale_by_freq=False, scale="dB")
+plt.title("shit 2")
 plt.figure()
 f, t, Sxx = signal.spectrogram(samples, sample_rate, window=np.hamming(256))
 plt.pcolormesh(t, f, Sxx, shading='gouraud')
 plt.ylabel('Frequency [Hz]')
 plt.xlabel('Time [sec]')
+plt.title("shit 3")
 plt.show()
 # plt.pcolormesh(xbins, ybins, 10 * np.log10(values))
 plt.show()

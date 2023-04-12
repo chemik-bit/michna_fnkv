@@ -292,22 +292,20 @@ if os.name == "nt":
 else:
     from config import CENTOS_PATHS as PATHS
 os.chdir(sys.path[1])
-image_sizes = [(100, 100)]
-chunks = [8]
+image_sizes = [(60, 60)]
+chunks = [2, 3, 4]
 balances = [False]
 fft_lens = [256]
-fft_overlaps = [125]
+fft_overlaps = [128]
 training_db = "svd"
 validation_db = "voiced"
 batch_size_exp = 8
-max_epochs = 20
-learning_rate_exp = 0.00001
-models = ["src.cnn.models.cnn001",
-          "src.cnn.models.cnn001_001",
-          "src.cnn.models.cnn001_002",
-          "src.cnn.models.cnn001_003",
-          "src.cnn.models.cnn001_004"]
+max_epochs = 50
+learning_rate_exp = 0.01
+models = ["src.cnn.models.cnn002"]
+
 create_functions = {}
+# TODO loops should be replaced via itertools.product
 for eval_model in models:
 
     classifier = importlib.import_module(eval_model)
@@ -336,6 +334,7 @@ for eval_model in models:
                     train = train.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
                     val = val.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
                     print("Sets transformed...")
+                    print(f"Model.. {classifier.__file__}")
                     model = classifier.create_model(image_size)
                     focal_loss = tf.keras.losses.BinaryCrossentropy()
                     #focal_loss = tf.keras.losses.BinaryFocalCrossentropy(apply_class_balancing=False)
@@ -343,7 +342,8 @@ for eval_model in models:
                         initial_learning_rate=1e-2,
                         decay_steps=1000000,
                         decay_rate=0.99)
-                    optimizer_cnn = tf.keras.optimizers.Adam(learning_rate=learning_rate_exp)
+                    #optimizer_cnn = tf.keras.optimizers.Adam(learning_rate=learning_rate_exp)
+                    optimizer_cnn = tf.keras.optimizers.SGD(lr=0.01)
                     log_dir = "logs"
                     # tensorboard stuff
                     from tensorflow.keras.callbacks import TensorBoard
@@ -359,28 +359,29 @@ for eval_model in models:
                     file_writer_cm = tf.summary.create_file_writer(log_dir + '/cm')
                     cm_callback = tf.keras.callbacks.LambdaCallback(on_epoch_end=log_confusion_matrix)
                     metrics_list = ["accuracy",
-                                    tf.keras.metrics.TruePositives(),
-                                    tf.keras.metrics.TrueNegatives(),
-                                    tf.keras.metrics.FalsePositives(),
-                                    tf.keras.metrics.FalseNegatives(),
-                                    tf.keras.metrics.Precision(),
-                                    tf.keras.metrics.Recall(),
-                                    tf.keras.metrics.AUC()]
+                                    tf.keras.metrics.TruePositives(name="TP"),
+                                    tf.keras.metrics.TrueNegatives(name="TN"),
+                                    tf.keras.metrics.FalsePositives(name="FP"),
+                                    tf.keras.metrics.FalseNegatives(name="FN"),
+                                    tf.keras.metrics.Precision(name="Precision"),
+                                    tf.keras.metrics.Recall(name="Recall"),
+                                    tf.keras.metrics.AUC(name="AUC")]
                     model.compile(loss=focal_loss, optimizer=optimizer_cnn, metrics=metrics_list)
                     model.summary()
                     # Display the model summary.
+
                     history = model.fit(train, validation_data=val, epochs=max_epochs, batch_size=batch_size_exp, callbacks=[tensorboard_callback]).history
                     healthy_validation = len(list(path.joinpath("validation", "healthy").glob("*")))
                     nonhealthy_validation = len(list(path.joinpath("validation", "nonhealthy").glob("*")))
-
+                    print(f"history keys {history.keys()}")
                     with open("results.txt", "a") as result_file:
-                        result_file.write(f"{classifier.__name__},"
+                        result_file.write(f"val auc max: {max(history['val_AUC'])}, auc max: {max(history['AUC'])},"
+                                          f"{classifier.__name__},"
                                           f"training set: {path.joinpath('training')},"
                                           f"val set: {path.joinpath('validation')},"
                                           f"{focal_loss._name_scope},"
                                           f"{optimizer_cnn._name},"
                                           f"lr: {learning_rate_exp},"
-                                          f"val auc max: {max(history['val_auc'])}, auc max: {max(history['auc'])},"
                                           f" balance: {balance},"
                                           f" fft_len: {fft_len},"
                                           f" chunks: {chunk},"
