@@ -292,16 +292,16 @@ if os.name == "nt":
 else:
     from config import CENTOS_PATHS as PATHS
 os.chdir(sys.path[1])
-image_sizes = [(60, 60)]
-chunks = [2, 3, 4]
+image_sizes = [(100, 100)]
+chunks = [3]
 balances = [False]
 fft_lens = [256]
 fft_overlaps = [128]
 training_db = "svd"
 validation_db = "voiced"
 batch_size_exp = 8
-max_epochs = 50
-learning_rate_exp = 0.01
+max_epochs = 600
+learning_rate_exp = 0.00001
 models = ["src.cnn.models.cnn002"]
 
 create_functions = {}
@@ -315,7 +315,7 @@ for eval_model in models:
                 for image_size in image_sizes:
 
                     print(f"Entering data_pipeline.... {image_size}")
-                    path = data_pipeline(chunk, [3, 4, 5], balance, fft_len, fft_len // 2, image_size,
+                    path = data_pipeline(chunk, [], balance, fft_len, fft_len // 2, image_size,
                                          training=training_db, validation=validation_db)
                     # path = data_pipeline(chunk, [3, 4, 5, 6], balance, fft_len, fft_len // 2, image_size)
                     print("Exited data_pipeline....")
@@ -342,8 +342,8 @@ for eval_model in models:
                         initial_learning_rate=1e-2,
                         decay_steps=1000000,
                         decay_rate=0.99)
-                    #optimizer_cnn = tf.keras.optimizers.Adam(learning_rate=learning_rate_exp)
-                    optimizer_cnn = tf.keras.optimizers.SGD(lr=0.01)
+                    optimizer_cnn = tf.keras.optimizers.Adam(learning_rate=learning_rate_exp)
+                    #optimizer_cnn = tf.keras.optimizers.SGD(lr=0.01)
                     log_dir = "logs"
                     # tensorboard stuff
                     from tensorflow.keras.callbacks import TensorBoard
