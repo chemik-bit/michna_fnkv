@@ -226,15 +226,15 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
             for key in unique_samples.keys():
                 destination_path_dataset.joinpath(key).joinpath("healthy").mkdir(exist_ok=True, parents=True)
                 destination_path_dataset.joinpath(key).joinpath("nonhealthy").mkdir(exist_ok=True, parents=True)
-                for sample in unique_samples[key]:
-                    for file in source_files:
-                        if sample in str(file):
-                            if "_healthy_" in str(file):
-                                shutil.copy(file, destination_path_dataset.joinpath(key).joinpath("healthy")
-                                            .joinpath(file.name))
-                            else:
-                                shutil.copy(file, destination_path_dataset.joinpath(key).joinpath("nonhealthy")
-                                            .joinpath(file.name))
+                # for fft_len, balance, chunk, image_size in itertools.product(fft_lens, balances, chunks, image_sizes):
+                for sample, file in itertools.product(unique_samples[key], source_files):
+                    if sample in str(file):
+                        if "_healthy_" in str(file):
+                            shutil.copy(file, destination_path_dataset.joinpath(key).joinpath("healthy")
+                                        .joinpath(file.name))
+                        else:
+                            shutil.copy(file, destination_path_dataset.joinpath(key).joinpath("nonhealthy")
+                                        .joinpath(file.name))
 
         elif not destination_path_dataset.exists():
             # All training and validation files
@@ -278,15 +278,14 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
             print(key)
             destination_path_dataset.joinpath(key).joinpath("healthy").mkdir(exist_ok=True, parents=True)
             destination_path_dataset.joinpath(key).joinpath("nonhealthy").mkdir(exist_ok=True, parents=True)
-            for sample in unique_samples[key]:
-                for file in source_files:
-                    if sample in str(file):
-                        if "_healthy_" in str(file):
-                            shutil.copy(file, destination_path_dataset.joinpath(key).joinpath("healthy")
-                                        .joinpath(file.name))
-                        else:
-                            shutil.copy(file, destination_path_dataset.joinpath(key).joinpath("nonhealthy")
-                                        .joinpath(file.name))
+            for sample, file in itertools.product(unique_samples[key], source_files):
+                if sample in str(file):
+                    if "_healthy_" in str(file):
+                        shutil.copy(file, destination_path_dataset.joinpath(key).joinpath("healthy")
+                                    .joinpath(file.name))
+                    else:
+                        shutil.copy(file, destination_path_dataset.joinpath(key).joinpath("nonhealthy")
+                                    .joinpath(file.name))
     else:
         print(f"{destination_path_dataset.name} configuration already existing, skipping dataset creation...")
 
