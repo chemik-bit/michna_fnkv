@@ -7,7 +7,10 @@
 - ./spectrograms - folder with spectrogram images
 - ./data/database.db - db with patients information
 - ./data/voiced - voiced db
-- ./dev - random testing scripts
+- ./dev - random scripts (usualy functionality testing)
+- ./dev/obsolete - obsolete modules
+- ./dev/siamese_voiced - everything related to siamese network development,...
+- ./logs - folder for tensorboard logs
 - ./src - scripts (data analysis)
 - ./src/siamese - Siamese network approach
 - ./src/siamese/models - models for Siamese network
@@ -16,5 +19,7 @@
 - .config.py - paths configuration
 - .README.md
 
+## Namespace
+- modules named "exp_*.py" are devoted to experimental testing of code functionality (see ./dev folder)
 
 **KEEP THIS README UP TO DATE!**

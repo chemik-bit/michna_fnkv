@@ -1,2 +1,0 @@
-- předělat preprocessing tak aby se ukládali spektrogrami ve full dpi i spektrogramy v rozlišení potřebném pro síť
-- 
