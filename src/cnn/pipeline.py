@@ -17,6 +17,7 @@ import itertools
 import io
 import csv
 from random import shuffle
+import yaml
 import tensorflow as tf
 from scipy import signal
 from scipy.io import wavfile
@@ -282,23 +283,31 @@ if os.name == "nt":
 else:
     from config import CENTOS_PATHS as PATHS
 os.chdir(sys.path[1])
-image_sizes = [(100, 100)]
-chunks = [3]
-balances = [False]
-fft_lens = [256]
-fft_overlaps = [128]
-training_db = "svd"
-validation_db = "voiced"
-batch_size_exp = 16
-max_epochs = 50
-learning_rate_exp = 0.00001
-models = ["src.cnn.models.h_cnn002",
-          "src.cnn.models.h_cnn001",
-          "src.cnn.models.h_cnn001_001",
-          "src.cnn.models.h_cnn001_002",
-          "src.cnn.models.h_cnn001_003",
-          "src.cnn.models.h_cnn001_004",
-          "src.cnn.models.h_cnn001_005"]
+with open("./src/cnn/configs/h_config.yaml") as file:
+    config = yaml.safe_load(file)
+
+image_sizes = []
+losses = {"binary_crossentropy": tf.keras.losses.BinaryCrossentropy,
+          "focal_loss":  tf.keras.losses.BinaryFocalCrossentropy}
+optimizers = {"adam": tf.keras.optimizers.Adam,
+              "sgd": tf.keras.optimizers.SGD,
+              "rmsprop": tf.keras.optimizers.RMSprop}
+for key in config["image_size"]:
+    image_sizes.append(tuple(config["image_size"][key]))
+
+chunks = config["wav_chunks"]
+balances = config["balances"]
+fft_lens = config["fft_lens"]
+fft_overlaps = config["fft_overlaps"]
+training_db = config["training_db"]
+validation_db = config["validation_db"]
+batch_size_exp = config["batch_size_exp"]
+max_epochs = config["max_epochs"]
+learning_rate_exp = config["lr"]
+models = config["models"]
+loss_function = losses[config["loss"]]()
+# TODO handle lr schedule and different params for optimizers
+optimizer_cnn = optimizers[config["optimizer"]](learning_rate=learning_rate_exp)
 
 for eval_model in models:
     classifier = importlib.import_module(eval_model)
@@ -325,13 +334,13 @@ for eval_model in models:
         print("Sets transformed...")
         print(f"Model.. {classifier.__file__}")
         model = classifier.create_model(image_size)
-        loss_function = tf.keras.losses.BinaryCrossentropy()
+        #loss_function = tf.keras.losses.BinaryCrossentropy()
         #focal_loss = tf.keras.losses.BinaryFocalCrossentropy(apply_class_balancing=False)
-        lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-            initial_learning_rate=1e-2,
-            decay_steps=1000000,
-            decay_rate=0.99)
-        optimizer_cnn = tf.keras.optimizers.Adam(learning_rate=learning_rate_exp)
+        # lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+        #     initial_learning_rate=1e-2,
+        #     decay_steps=1000000,
+        #     decay_rate=0.99)
+
         #optimizer_cnn = tf.keras.optimizers.SGD(lr=0.01)
         log_dir = "logs"
         # tensorboard stuff

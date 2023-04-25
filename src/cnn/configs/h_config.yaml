@@ -18,4 +18,5 @@ models: ["src.cnn.models.h_cnn002",
           "src.cnn.models.h_cnn001_003",
           "src.cnn.models.h_cnn001_004",
           "src.cnn.models.h_cnn001_005"]
-loss:
+loss: binary_crossentropy
+optimizer: adam
