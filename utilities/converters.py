@@ -8,36 +8,49 @@ from scipy import signal
 from scipy.io import wavfile
 import numpy as np
 import shutil
-
 import cv2
 #from timeit import default_timer as timer
+from utilities.octave_filter_bank import octave_filtering
 
 
-def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length: int):
+def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length: int, fft_overlap: int,
+                    spectrogram_resolution: tuple, dpi: int = 300, octaves: list = None):
     """
-    Converts sound file (sorce_path) to its spectrogram and save it to destination_path folder.
+    Converts sound file (source_path) to its spectrogram and save it to destination_path folder.
     Filename is the same as source sound file (but with .png extension).
-    :param fft_window_length: lenght of FFT window (Hamming)
+    :param fft_window_length: length of FFT window (Hamming)
+    :param fft_overlap: number of points overlapping between neighboring window
     :param source_path: path to sound file (pathlib)
     :param destination_path: path to folder where the spectrogram is saved. (pathlib)
+    :param spectrogram_resolution: resolution of the resulting image in pixels
+    :param dpi: resolution density (dots per inch)
+    :param octaves: used for octave filtering, ignored if not defined when calling the function
     :return: None
     """
+    # Convert the dimensions from pixels to inches
+    inch_x = spectrogram_resolution[0] / dpi
+    inch_y = spectrogram_resolution[1] / dpi
 
+    # Create spectrogram
+    if octaves is None:
+        octaves = []
     sample_rate, samples = wavfile.read(source_path)
-    # frequencies, times, spectrogram = signal.spectrogram(samples, fs=sample_rate,
-    #                                                      scaling="spectrum", nfft=None,
-    #                                                      mode="psd", noverlap=fft_window_length // 2,
-    #                                                      window=np.hamming(fft_window_length))
-    frequencies, times, spectrogram = signal.spectrogram(samples, sample_rate, window=np.hamming(int(.120*sample_rate)),
-                                                         noverlap=128)
-    times = times.transpose()
-    frequencies_cut = frequencies[:np.count_nonzero(frequencies <= 2000)].transpose()
-    spectrogram_cut = spectrogram[:np.count_nonzero(frequencies <= 2000)].transpose()
-    plt.pcolormesh(frequencies_cut, times, spectrogram_cut, cmap="gray")
-    plt.axis("off")
+    if octaves is not None:
+        samples = octave_filtering(octaves, samples)
+    frequencies, times, spectrogram = signal.spectrogram(samples,
+                                                         sample_rate,
+                                                         window=np.hamming(fft_window_length),
+                                                         noverlap=fft_overlap)
 
-    plt.savefig(destination_path.joinpath(source_path.stem + ".png"), dpi=300, format="png",
-                bbox_inches='tight', pad_inches=0)
+    fig = plt.figure(frameon=False)
+    fig.set_size_inches(inch_y, inch_x)
+    plot_axes = plt.Axes(fig, [0., 0., 1., 1.])
+    plot_axes.set_axis_off()
+    fig.add_axes(plot_axes)
+    plot_axes.pcolormesh(times, frequencies, spectrogram, cmap="binary")
+    plt.gray()
+    plt.savefig(destination_path.joinpath(f"{source_path.stem}.png"), format="png",
+                bbox_inches='tight', pad_inches=0, dpi=300)
     plt.close("all")
 
 

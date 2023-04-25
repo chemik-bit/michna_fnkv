@@ -25,7 +25,7 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import confusion_matrix
 # from src.cnn.models.cnn003 import create_model
 #import src.cnn.models.cnn001 as classifier
-from utilities.converters import txt2wav
+from utilities.converters import txt2wav, wav2spectrogram
 from utilities.octave_filter_bank import octave_filtering
 
 import sklearn.metrics
@@ -180,27 +180,11 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
         destination_path_spectrogram = PATHS["PATH_SPECTROGRAMS"].joinpath(db).joinpath(subdir_name)
         destination_path_spectrogram.mkdir(parents=True, exist_ok=True)
         print("Converting WAV files to spectrograms...")
-        # TODO convert this stuff to function.. already implemented in utilities.converters
         for sound_file in destination_path_wav.iterdir():
             if not destination_path_spectrogram.joinpath(f"{sound_file.stem}.png").exists():
                 # Create spectrogram
-                sample_rate, samples = wavfile.read(sound_file)
-                samples = octave_filtering(octaves, samples)
-                frequencies, times, spectrogram = signal.spectrogram(samples,
-                                                                     sample_rate,
-                                                                     window=np.hamming(fft_len),
-                                                                     noverlap=fft_overlap)
-
-                fig = plt.figure(frameon=False)
-                fig.set_size_inches(inch_y, inch_x)
-                plot_axes = plt.Axes(fig, [0., 0., 1., 1.])
-                plot_axes.set_axis_off()
-                fig.add_axes(plot_axes)
-                plot_axes.pcolormesh(times, frequencies, spectrogram, cmap="binary")
-                plt.gray()
-                plt.savefig(destination_path_spectrogram.joinpath(f"{sound_file.stem}.png"), format="png",
-                            bbox_inches='tight', pad_inches=0, dpi=300)
-                plt.close("all")
+                wav2spectrogram(sound_file, destination_path_spectrogram, fft_len, fft_overlap,
+                                spectrogram_resolution, octaves=octaves)
 
     print("Dataset splitting...")
     # 3. Create training/validation datasets
