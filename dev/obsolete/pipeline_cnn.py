@@ -17,7 +17,7 @@ from scipy.io import wavfile
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics import confusion_matrix
-from src.cnn.models.cnn001_003 import create_model
+from src.cnn.models.h_cnn001_003 import create_model
 from utilities.converters import txt2wav
 from utilities.octave_filter_bank import octave_filtering
 

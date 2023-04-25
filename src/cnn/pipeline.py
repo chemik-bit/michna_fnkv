@@ -292,13 +292,13 @@ validation_db = "voiced"
 batch_size_exp = 16
 max_epochs = 50
 learning_rate_exp = 0.00001
-models = ["src.cnn.models.cnn002",
-          "src.cnn.models.cnn001",
-          "src.cnn.models.cnn001_001",
-          "src.cnn.models.cnn001_002",
-          "src.cnn.models.cnn001_003",
-          "src.cnn.models.cnn001_004",
-          "src.cnn.models.cnn001_005"]
+models = ["src.cnn.models.h_cnn002",
+          "src.cnn.models.h_cnn001",
+          "src.cnn.models.h_cnn001_001",
+          "src.cnn.models.h_cnn001_002",
+          "src.cnn.models.h_cnn001_003",
+          "src.cnn.models.h_cnn001_004",
+          "src.cnn.models.h_cnn001_005"]
 
 for eval_model in models:
     classifier = importlib.import_module(eval_model)
