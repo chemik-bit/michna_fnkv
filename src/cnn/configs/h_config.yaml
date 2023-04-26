@@ -1,6 +1,6 @@
 image_size:
-  1: [100, 100]
-  2: [80, 80]
+  1: [200, 200]
+  2: [140, 140]
 balances: [False]
 wav_chunks: [2, 3, 4]
 octaves: []
@@ -11,7 +11,7 @@ validation_db: voiced
 batch_size_exp: 8
 max_epochs: 100
 lr: 0.00001
-models: ["src.cnn.models.h_cnn003",
+models: [
          "src.cnn.models.h_cnn004"]
 loss: binary_crossentropy
 optimizer: adam

@@ -21,5 +21,6 @@
 
 ## Namespace
 - modules named "exp_*.py" are devoted to experimental testing of code functionality (see ./dev folder)
+- models: h_cnn001_002.py: h - created by Honza, cnn - convolutional neural network, 001 - architecture, 002 - hyperparameters version 
 
 **KEEP THIS README UP TO DATE!**
