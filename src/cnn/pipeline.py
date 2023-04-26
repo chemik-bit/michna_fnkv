@@ -364,6 +364,8 @@ for eval_model in models:
                         tf.keras.metrics.Precision(name="Precision"),
                         tf.keras.metrics.Recall(name="Recall"),
                         tf.keras.metrics.AUC(name="AUC")]
+
+
         model.compile(loss=loss_function, optimizer=optimizer_cnn, metrics=metrics_list)
         model.summary()
         # Display the model summary.

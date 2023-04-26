@@ -1,6 +1,7 @@
 image_size:
   1: [200, 200]
   2: [140, 140]
+  3: [100, 100]
 balances: [False]
 wav_chunks: [2, 3, 4]
 octaves: []
@@ -9,9 +10,16 @@ fft_overlaps: [128]
 training_db: svd
 validation_db: voiced
 batch_size_exp: 8
-max_epochs: 100
+max_epochs: 300
 lr: 0.00001
-models: [
+models: ["src.cnn.models.h_cnn001",
+         "src.cnn.models.h_cnn001_001",
+         "src.cnn.models.h_cnn001_002",
+         "src.cnn.models.h_cnn001_003",
+         "src.cnn.models.h_cnn001_004",
+         "src.cnn.models.h_cnn001_005",
+         "src.cnn.models.h_cnn002",
+         "src.cnn.models.h_cnn003",
          "src.cnn.models.h_cnn004"]
-loss: binary_crossentropy
+loss: focal_loss
 optimizer: adam
