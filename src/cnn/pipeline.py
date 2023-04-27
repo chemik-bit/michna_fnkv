@@ -396,7 +396,7 @@ for eval_model in models:
         for idx, fp in enumerate(history["val_FP"]):
             if history["val_FN"][idx] + fp < results_to_write["benchmark_value"]:
                 results_to_write["benchmark_value"] = fp + history["val_FN"][idx]
-                results_to_write["AUC"] = history["val_AUC"][idx]
+                results_to_write["VAL_AUC"] = history["val_AUC"][idx]
                 results_to_write["TP"] = history["val_TP"][idx]
                 results_to_write["TN"] = history["val_TN"][idx]
                 results_to_write["FP"] = fp
