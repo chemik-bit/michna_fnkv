@@ -374,29 +374,55 @@ for eval_model in models:
         healthy_validation = len(list(path.joinpath("validation", "healthy").glob("*")))
         nonhealthy_validation = len(list(path.joinpath("validation", "nonhealthy").glob("*")))
         print(f"history keys {history.keys()}")
-        benchmark_value = 9999999999999
+        results_to_write = {"model": f"{classifier.__name__}",
+                            "benchmark_value": 99999999999,
+                            "TP": 0,
+                            "TN": 0,
+                            "FP": 0,
+                            "FN": 0,
+                            "AUC": 0,
+                            "training_set": f"{path.joinpath('training')}",
+                            "val_set": f"{path.joinpath('validation')}",
+                            "loss": f"{loss_function._name_scope}",
+                            "optimizer":  f"{optimizer_cnn._name}",
+                            "lr": f"{learning_rate_exp}",
+                            "balance":  f"{balance}",
+                            "fft_len":  f"{fft_len}",
+                            "chunks": f"{chunk}",
+                            "image_size":f"{image_size}",
+                            "val_ratio": f"{nonhealthy_validation / (nonhealthy_validation + healthy_validation)}"}
+        # print(history)}
         benchmark_auc = 0
         for idx, fp in enumerate(history["val_FP"]):
-            if history["val_FN"][idx] + fp < benchmark_value:
-                benchmark_value = fp + history["val_FN"][idx]
-                benchmark_auc = history["val_AUC"][idx]
-                benchmark_tp = history["val_TP"][idx]
-                benchmark_tn = history["val_TN"][idx]
-                benchmark_fp = fp
-                benchmark_fn = history["val_FN"][idx]
-        with open("results.txt", "a") as result_file:
-            result_file.write(f"val auc max: {max(history['val_AUC'])}, auc max: {max(history['AUC'])},"
-                              f"benchmark_value: {benchmark_value} - AUC {benchmark_auc} - val TP {benchmark_tp} - val TN {benchmark_tn} - val FP {benchmark_fp} - val FN {benchmark_fn} "
-                              f"{classifier.__name__},"
-                              f"training set: {path.joinpath('training')},"
-                              f"val set: {path.joinpath('validation')},"
-                              f"{loss_function._name_scope},"
-                              f"{optimizer_cnn._name},"
-                              f"lr: {learning_rate_exp},"
-                              f" balance: {balance},"
-                              f" fft_len: {fft_len},"
-                              f" chunks: {chunk},"
-                              f" image_size: {image_size},"
-                              f"val_ratio: {nonhealthy_validation / (nonhealthy_validation + healthy_validation)}\n")
+            if history["val_FN"][idx] + fp < results_to_write["benchmark_value"]:
+                results_to_write["benchmark_value"] = fp + history["val_FN"][idx]
+                results_to_write["AUC"] = history["val_AUC"][idx]
+                results_to_write["TP"] = history["val_TP"][idx]
+                results_to_write["TN"] = history["val_TN"][idx]
+                results_to_write["FP"] = fp
+                results_to_write["FN"] = history["val_FN"][idx]
+
+        results_to_write["VAL_AUC_MAX"] = max(history["val_AUC"])
+        results_to_write["AUC_MAX"] = max(history["AUC"])
+
+        with open("results.csv", "w", newline="") as csvfile:
+            fieldnames = [key for key in results_to_write.keys()]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerow(results_to_write)
+        # with open("results.txt", "a") as result_file:
+        #     result_file.write(f"val auc max: {max(history['val_AUC'])}, auc max: {max(history['AUC'])},"
+        #                       f"benchmark_value: {benchmark_value} - AUC {benchmark_auc} - val TP {benchmark_tp} - val TN {benchmark_tn} - val FP {benchmark_fp} - val FN {benchmark_fn} "
+        #                       f"{classifier.__name__},"
+        #                       f"training set: {path.joinpath('training')},"
+        #                       f"val set: {path.joinpath('validation')},"
+        #                       f"{loss_function._name_scope},"
+        #                       f"{optimizer_cnn._name},"
+        #                       f"lr: {learning_rate_exp},"
+        #                       f" balance: {balance},"
+        #                       f" fft_len: {fft_len},"
+        #                       f" chunks: {chunk},"
+        #                       f" image_size: {image_size},"
+        #                       f"val_ratio: {nonhealthy_validation / (nonhealthy_validation + healthy_validation)}\n")
         # print(history)
         # print(history.keys())
