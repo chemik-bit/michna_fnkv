@@ -35,6 +35,10 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
     if octaves is None:
         octaves = []
     sample_rate, samples = wavfile.read(source_path)
+    if "svd" in str(source_path.resolve()):
+        number_of_samples = round(len(samples) * float(8000) / sample_rate)
+        samples = signal.resample(samples, number_of_samples)
+
     if octaves is not None:
         samples = octave_filtering(octaves, samples)
     frequencies, times, spectrogram = signal.spectrogram(samples,

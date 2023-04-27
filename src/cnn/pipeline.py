@@ -364,6 +364,8 @@ for eval_model in models:
                         tf.keras.metrics.Precision(name="Precision"),
                         tf.keras.metrics.Recall(name="Recall"),
                         tf.keras.metrics.AUC(name="AUC")]
+
+
         model.compile(loss=loss_function, optimizer=optimizer_cnn, metrics=metrics_list)
         model.summary()
         # Display the model summary.
@@ -372,8 +374,19 @@ for eval_model in models:
         healthy_validation = len(list(path.joinpath("validation", "healthy").glob("*")))
         nonhealthy_validation = len(list(path.joinpath("validation", "nonhealthy").glob("*")))
         print(f"history keys {history.keys()}")
+        benchmark_value = 9999999999999
+        benchmark_auc = 0
+        for idx, fp in enumerate(history["val_FP"]):
+            if history["val_FN"][idx] + fp < benchmark_value:
+                benchmark_value = fp + history["val_FN"][idx]
+                benchmark_auc = history["val_AUC"][idx]
+                benchmark_tp = history["val_TP"][idx]
+                benchmark_tn = history["val_TN"][idx]
+                benchmark_fp = fp
+                benchmark_fn = history["val_FN"][idx]
         with open("results.txt", "a") as result_file:
             result_file.write(f"val auc max: {max(history['val_AUC'])}, auc max: {max(history['AUC'])},"
+                              f"benchmark_value: {benchmark_value} - AUC {benchmark_auc} - val TP {benchmark_tp} - val TN {benchmark_tn} - val FP {benchmark_fp} - val FN {benchmark_fn} "
                               f"{classifier.__name__},"
                               f"training set: {path.joinpath('training')},"
                               f"val set: {path.joinpath('validation')},"
