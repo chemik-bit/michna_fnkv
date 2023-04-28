@@ -405,7 +405,7 @@ for eval_model in models:
         results_to_write["VAL_AUC_MAX"] = max(history["val_AUC"])
         results_to_write["AUC_MAX"] = max(history["AUC"])
 
-        with open("results.csv", "w", newline="") as csvfile:
+        with open("results.csv", "a", newline="") as csvfile:
             fieldnames = [key for key in results_to_write.keys()]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
