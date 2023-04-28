@@ -408,6 +408,8 @@ for eval_model in models:
         with open("results.csv", "a", newline="") as csvfile:
             fieldnames = [key for key in results_to_write.keys()]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            if csvfile.tell() == 0:
+                writer.writeheader()
             writer.writeheader()
             writer.writerow(results_to_write)
         # with open("results.txt", "a") as result_file:
