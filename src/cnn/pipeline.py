@@ -410,7 +410,6 @@ for eval_model in models:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             if csvfile.tell() == 0:
                 writer.writeheader()
-            writer.writeheader()
             writer.writerow(results_to_write)
         # with open("results.txt", "a") as result_file:
         #     result_file.write(f"val auc max: {max(history['val_AUC'])}, auc max: {max(history['AUC'])},"
