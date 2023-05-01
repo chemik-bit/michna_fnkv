@@ -6,8 +6,8 @@ laura_results = {"f1": 72.99,
                  "auc": 0.626}
 
 TP = 140
-TN = 52
-FP = 41
+TN = 18
+FP = 39
 FN = 11
 
 our_results = {"f1": 100 * 2 * TP / (2 * TP + TN + FP + FN),
