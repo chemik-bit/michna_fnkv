@@ -1,3 +1,25 @@
+import importlib
+import argparse
+import os
+import sys
+from pathlib import Path
+import shutil
+import re
+import itertools
+import io
+import csv
+from random import shuffle
+
+import yaml
+import tensorflow as tf
+import numpy as np
+from matplotlib import pyplot as plt
+from sklearn.metrics import confusion_matrix
+import sklearn.metrics
+
+from utilities.converters import txt2wav, wav2spectrogram
+from utilities.octave_filter_bank import octave_filtering
+
 # TODO implement YAML config file
 """
 Complete datapipeline for CNN classification.
@@ -8,29 +30,10 @@ Complete datapipeline for CNN classification.
 4. Load training/validation datasets as tf.dataset.Data
 5. Train CNN model and validate
 """
-import importlib
-import os
-import sys
-import shutil
-import re
-import itertools
-import io
-import csv
-from random import shuffle
-import yaml
-import tensorflow as tf
-from scipy import signal
-from scipy.io import wavfile
-import numpy as np
-from matplotlib import pyplot as plt
-from sklearn.metrics import confusion_matrix
-# from src.cnn.models.cnn003 import create_model
-#import src.cnn.models.cnn001 as classifier
-from utilities.converters import txt2wav, wav2spectrogram
-from utilities.octave_filter_bank import octave_filtering
 
-import sklearn.metrics
-import tensorflow_addons as tfa
+
+
+
 
 
 from tensorflow.keras.callbacks import TensorBoard
@@ -143,6 +146,10 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
     :param validation_db: selection from databases for validation dataset. Options 'voiced', 'svd', 'mixed'
     :return: path to folder with training and validation set (spectrogram images)
     """
+    if os.name == "nt":
+        from config import WINDOWS_PATHS as PATHS
+    else:
+        from config import CENTOS_PATHS as PATHS
     inch_x = spectrogram_resolution[0] / 300  # 300 is value in plt.savefig..
     inch_y = spectrogram_resolution[1] / 300
 
@@ -277,153 +284,161 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
     return destination_path_dataset
 
 
-
-if os.name == "nt":
-    from config import WINDOWS_PATHS as PATHS
-else:
-    from config import CENTOS_PATHS as PATHS
-os.chdir(sys.path[1])
-with open("./src/cnn/configs/h_config.yaml") as file:
-    config = yaml.safe_load(file)
-
-image_sizes = []
-losses = {"binary_crossentropy": tf.keras.losses.BinaryCrossentropy,
-          "focal_loss":  tf.keras.losses.BinaryFocalCrossentropy}
-optimizers = {"adam": tf.keras.optimizers.Adam,
-              "sgd": tf.keras.optimizers.SGD,
-              "rmsprop": tf.keras.optimizers.RMSprop}
-for key in config["image_size"]:
-    image_sizes.append(tuple(config["image_size"][key]))
-
-chunks = config["wav_chunks"]
-balances = config["balances"]
-fft_lens = config["fft_lens"]
-fft_overlaps = config["fft_overlaps"]
-training_db = config["training_db"]
-validation_db = config["validation_db"]
-batch_size_exp = config["batch_size_exp"]
-max_epochs = config["max_epochs"]
-learning_rate_exp = config["lr"]
-models = config["models"]
-loss_function = losses[config["loss"]]()
-# TODO handle lr schedule and different params for optimizers
-optimizer_cnn = optimizers[config["optimizer"]](learning_rate=learning_rate_exp)
-
-for eval_model in models:
-    classifier = importlib.import_module(eval_model)
-    for fft_len, balance, chunk, image_size in itertools.product(fft_lens, balances, chunks, image_sizes):
-        print(f"Entering data_pipeline.... {image_size}")
-        path = data_pipeline(chunk, [], balance, fft_len, fft_len // 2, image_size,
-                             training=training_db, validation=validation_db)
-        # path = data_pipeline(chunk, [3, 4, 5, 6], balance, fft_len, fft_len // 2, image_size)
-        print("Exited data_pipeline....")
-        print("Loading datasets....")
-        train = tf.keras.preprocessing.image_dataset_from_directory(
-            path.joinpath("training"),
-
-            image_size=image_size,
-            batch_size=batch_size_exp)
-
-        print("Train set loaded")
-        val = tf.keras.preprocessing.image_dataset_from_directory(
-            path.joinpath("validation"),
-            image_size=image_size)
-        print("Validation set loaded")
-        train = train.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
-        val = val.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
-        print("Sets transformed...")
-        print(f"Model.. {classifier.__file__}")
-        model = classifier.create_model(image_size)
-        #loss_function = tf.keras.losses.BinaryCrossentropy()
-        #focal_loss = tf.keras.losses.BinaryFocalCrossentropy(apply_class_balancing=False)
-        # lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-        #     initial_learning_rate=1e-2,
-        #     decay_steps=1000000,
-        #     decay_rate=0.99)
-
-        #optimizer_cnn = tf.keras.optimizers.SGD(lr=0.01)
-        log_dir = "logs"
-        # tensorboard stuff
+def pipeline(configfile: Path):
 
 
-        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="logs")
-        # callbacks = [TensorBoard(log_dir=log_dir,
-        #                          histogram_freq=1,
-        #                          write_graph=True,
-        #                          write_images=False,
-        #                          update_freq='epoch',
-        #                          profile_batch=2,
-        #                          embeddings_freq=1)]
-        file_writer_cm = tf.summary.create_file_writer(log_dir + '/cm')
-        cm_callback = tf.keras.callbacks.LambdaCallback(on_epoch_end=log_confusion_matrix)
-        metrics_list = ["accuracy",
-                        tf.keras.metrics.TruePositives(name="TP"),
-                        tf.keras.metrics.TrueNegatives(name="TN"),
-                        tf.keras.metrics.FalsePositives(name="FP"),
-                        tf.keras.metrics.FalseNegatives(name="FN"),
-                        tf.keras.metrics.Precision(name="Precision"),
-                        tf.keras.metrics.Recall(name="Recall"),
-                        tf.keras.metrics.AUC(name="AUC")]
+    os.chdir(sys.path[1])
+
+    with open(Path(__file__).parent.joinpath(configfile)) as file:
+        config = yaml.safe_load(file)
+
+    image_sizes = []
+    losses = {"binary_crossentropy": tf.keras.losses.BinaryCrossentropy,
+              "focal_loss":  tf.keras.losses.BinaryFocalCrossentropy}
+    optimizers = {"adam": tf.keras.optimizers.Adam,
+                  "sgd": tf.keras.optimizers.SGD,
+                  "rmsprop": tf.keras.optimizers.RMSprop}
+    for key in config["image_size"]:
+        image_sizes.append(tuple(config["image_size"][key]))
+
+    chunks = config["wav_chunks"]
+    balances = config["balances"]
+    fft_lens = config["fft_lens"]
+    fft_overlaps = config["fft_overlaps"]
+    training_db = config["training_db"]
+    validation_db = config["validation_db"]
+    batch_size_exp = config["batch_size_exp"]
+    max_epochs = config["max_epochs"]
+    learning_rate_exp = config["lr"]
+    models = config["models"]
+    loss_function = losses[config["loss"]]()
+    # TODO handle lr schedule and different params for optimizers
+    optimizer_cnn = optimizers[config["optimizer"]](learning_rate=learning_rate_exp)
+
+    for eval_model in models:
+        classifier = importlib.import_module(eval_model)
+        for fft_len, balance, chunk, image_size in itertools.product(fft_lens, balances, chunks, image_sizes):
+            print(f"Entering data_pipeline.... {image_size}")
+            path = data_pipeline(chunk, [], balance, fft_len, fft_len // 2, image_size,
+                                 training=training_db, validation=validation_db)
+            # path = data_pipeline(chunk, [3, 4, 5, 6], balance, fft_len, fft_len // 2, image_size)
+            print("Exited data_pipeline....")
+            print("Loading datasets....")
+            train = tf.keras.preprocessing.image_dataset_from_directory(
+                path.joinpath("training"),
+
+                image_size=image_size,
+                batch_size=batch_size_exp)
+
+            print("Train set loaded")
+            val = tf.keras.preprocessing.image_dataset_from_directory(
+                path.joinpath("validation"),
+                image_size=image_size)
+            print("Validation set loaded")
+            train = train.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
+            val = val.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
+            print("Sets transformed...")
+            print(f"Model.. {classifier.__file__}")
+            model = classifier.create_model(image_size)
+            #loss_function = tf.keras.losses.BinaryCrossentropy()
+            #focal_loss = tf.keras.losses.BinaryFocalCrossentropy(apply_class_balancing=False)
+            # lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+            #     initial_learning_rate=1e-2,
+            #     decay_steps=1000000,
+            #     decay_rate=0.99)
+
+            #optimizer_cnn = tf.keras.optimizers.SGD(lr=0.01)
+            log_dir = "logs"
+            # tensorboard stuff
 
 
-        model.compile(loss=loss_function, optimizer=optimizer_cnn, metrics=metrics_list)
-        model.summary()
-        # Display the model summary.
+            tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="logs")
+            # callbacks = [TensorBoard(log_dir=log_dir,
+            #                          histogram_freq=1,
+            #                          write_graph=True,
+            #                          write_images=False,
+            #                          update_freq='epoch',
+            #                          profile_batch=2,
+            #                          embeddings_freq=1)]
+            file_writer_cm = tf.summary.create_file_writer(log_dir + '/cm')
+            cm_callback = tf.keras.callbacks.LambdaCallback(on_epoch_end=log_confusion_matrix)
+            metrics_list = ["accuracy",
+                            tf.keras.metrics.TruePositives(name="TP"),
+                            tf.keras.metrics.TrueNegatives(name="TN"),
+                            tf.keras.metrics.FalsePositives(name="FP"),
+                            tf.keras.metrics.FalseNegatives(name="FN"),
+                            tf.keras.metrics.Precision(name="Precision"),
+                            tf.keras.metrics.Recall(name="Recall"),
+                            tf.keras.metrics.AUC(name="AUC")]
 
-        history = model.fit(train, validation_data=val, epochs=max_epochs, batch_size=batch_size_exp, callbacks=[tensorboard_callback]).history
-        healthy_validation = len(list(path.joinpath("validation", "healthy").glob("*")))
-        nonhealthy_validation = len(list(path.joinpath("validation", "nonhealthy").glob("*")))
-        print(f"history keys {history.keys()}")
-        results_to_write = {"model": f"{classifier.__name__}",
-                            "benchmark_value": 99999999999,
-                            "TP": 0,
-                            "TN": 0,
-                            "FP": 0,
-                            "FN": 0,
-                            "AUC": 0,
-                            "training_set": f"{path.joinpath('training')}",
-                            "val_set": f"{path.joinpath('validation')}",
-                            "loss": f"{loss_function._name_scope}",
-                            "optimizer":  f"{optimizer_cnn._name}",
-                            "lr": f"{learning_rate_exp}",
-                            "balance":  f"{balance}",
-                            "fft_len":  f"{fft_len}",
-                            "chunks": f"{chunk}",
-                            "image_size":f"{image_size}",
-                            "val_ratio": f"{nonhealthy_validation / (nonhealthy_validation + healthy_validation)}"}
-        # print(history)}
-        benchmark_auc = 0
-        for idx, fp in enumerate(history["val_FP"]):
-            if history["val_FN"][idx] + fp < results_to_write["benchmark_value"]:
-                results_to_write["benchmark_value"] = fp + history["val_FN"][idx]
-                results_to_write["VAL_AUC"] = history["val_AUC"][idx]
-                results_to_write["TP"] = history["val_TP"][idx]
-                results_to_write["TN"] = history["val_TN"][idx]
-                results_to_write["FP"] = fp
-                results_to_write["FN"] = history["val_FN"][idx]
 
-        results_to_write["VAL_AUC_MAX"] = max(history["val_AUC"])
-        results_to_write["AUC_MAX"] = max(history["AUC"])
+            model.compile(loss=loss_function, optimizer=optimizer_cnn, metrics=metrics_list)
+            model.summary()
+            # Display the model summary.
 
-        with open("results.csv", "a", newline="") as csvfile:
-            fieldnames = [key for key in results_to_write.keys()]
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            if csvfile.tell() == 0:
-                writer.writeheader()
-            writer.writerow(results_to_write)
-        # with open("results.txt", "a") as result_file:
-        #     result_file.write(f"val auc max: {max(history['val_AUC'])}, auc max: {max(history['AUC'])},"
-        #                       f"benchmark_value: {benchmark_value} - AUC {benchmark_auc} - val TP {benchmark_tp} - val TN {benchmark_tn} - val FP {benchmark_fp} - val FN {benchmark_fn} "
-        #                       f"{classifier.__name__},"
-        #                       f"training set: {path.joinpath('training')},"
-        #                       f"val set: {path.joinpath('validation')},"
-        #                       f"{loss_function._name_scope},"
-        #                       f"{optimizer_cnn._name},"
-        #                       f"lr: {learning_rate_exp},"
-        #                       f" balance: {balance},"
-        #                       f" fft_len: {fft_len},"
-        #                       f" chunks: {chunk},"
-        #                       f" image_size: {image_size},"
-        #                       f"val_ratio: {nonhealthy_validation / (nonhealthy_validation + healthy_validation)}\n")
-        # print(history)
-        # print(history.keys())
+            history = model.fit(train, validation_data=val, epochs=max_epochs, batch_size=batch_size_exp, callbacks=[tensorboard_callback]).history
+            healthy_validation = len(list(path.joinpath("validation", "healthy").glob("*")))
+            nonhealthy_validation = len(list(path.joinpath("validation", "nonhealthy").glob("*")))
+            print(f"history keys {history.keys()}")
+            results_to_write = {"model": f"{classifier.__name__}",
+                                "benchmark_value": 9999999,
+                                "TP": 0,
+                                "TN": 0,
+                                "FP": 0,
+                                "FN": 0,
+                                "AUC": 0,
+                                "training_set": f"{path.joinpath('training')}",
+                                "val_set": f"{path.joinpath('validation')}",
+                                "loss": f"{loss_function._name_scope}",
+                                "optimizer":  f"{optimizer_cnn._name}",
+                                "lr": f"{learning_rate_exp}",
+                                "balance":  f"{balance}",
+                                "fft_len":  f"{fft_len}",
+                                "chunks": f"{chunk}",
+                                "image_size":f"{image_size}",
+                                "val_ratio": f"{nonhealthy_validation / (nonhealthy_validation + healthy_validation)}"}
+            # print(history)}
+            benchmark_auc = 0
+            for idx, fp in enumerate(history["val_FP"]):
+                if history["val_FN"][idx] + fp < results_to_write["benchmark_value"]:
+                    results_to_write["benchmark_value"] =  history["val_FN"][idx] + fp
+                    results_to_write["VAL_AUC"] = history["val_AUC"][idx]
+                    results_to_write["TP"] = history["val_TP"][idx]
+                    results_to_write["TN"] = history["val_TN"][idx]
+                    results_to_write["FP"] = fp
+                    results_to_write["FN"] = history["val_FN"][idx]
+
+            results_to_write["VAL_AUC_MAX"] = max(history["val_AUC"])
+            results_to_write["AUC_MAX"] = max(history["AUC"])
+
+            with open("results.csv", "a", newline="") as csvfile:
+                fieldnames = [key for key in results_to_write.keys()]
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                if csvfile.tell() == 0:
+                    writer.writeheader()
+                writer.writerow(results_to_write)
+            # with open("results.txt", "a") as result_file:
+            #     result_file.write(f"val auc max: {max(history['val_AUC'])}, auc max: {max(history['AUC'])},"
+            #                       f"benchmark_value: {benchmark_value} - AUC {benchmark_auc} - val TP {benchmark_tp} - val TN {benchmark_tn} - val FP {benchmark_fp} - val FN {benchmark_fn} "
+            #                       f"{classifier.__name__},"
+            #                       f"training set: {path.joinpath('training')},"
+            #                       f"val set: {path.joinpath('validation')},"
+            #                       f"{loss_function._name_scope},"
+            #                       f"{optimizer_cnn._name},"
+            #                       f"lr: {learning_rate_exp},"
+            #                       f" balance: {balance},"
+            #                       f" fft_len: {fft_len},"
+            #                       f" chunks: {chunk},"
+            #                       f" image_size: {image_size},"
+            #                       f"val_ratio: {nonhealthy_validation / (nonhealthy_validation + healthy_validation)}\n")
+            # print(history)
+            # print(history.keys())
+
+if __name__ == "__main__":
+
+
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--configfile", type=Path, required=True)
+    args = parser.parse_args()
+    pipeline(args.configfile)

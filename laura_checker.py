@@ -5,10 +5,10 @@ laura_results = {"f1": 72.99,
                  "specificity": 58.62,
                  "auc": 0.626}
 
-TP = 140
-TN = 18
-FP = 39
-FN = 11
+TP = 120
+TN = 28
+FP = 29
+FN = 31
 
 our_results = {"f1": 100 * 2 * TP / (2 * TP + TN + FP + FN),
                "precision":100 * TP / (TP + FP),

@@ -13,7 +13,6 @@ validation_db: voiced
 batch_size_exp: 4
 max_epochs: 150
 lr: 0.00001
-models: ["src.cnn.models.h_cnn002_008",
-         "src.cnn.models.h_cnn002_008"]
+models: ["src.cnn.models.h_cnn002_009"]
 loss: focal_loss
 optimizer: adam
