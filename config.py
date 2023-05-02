@@ -18,6 +18,7 @@ WINDOWS_PATHS = {
     "PATH_DATASET_VAL": Path(__file__).parent.joinpath("./data/dataset/val"),
     "PATH_SPECTROGRAMS": Path(__file__).parent.joinpath("./data/spectrograms"),
     "PATH_EXPERIMENTS": Path("C:/siamese_runs"),
+    "PATH_RESULTS": Path(__file__).parent.joinpath("./data/results"),
     "PATH_CSV": Path(__file__).parent.joinpath("./data")
 }
 
@@ -38,5 +39,6 @@ CENTOS_PATHS = {
     "PATH_DATASET_VAL": Path(__file__).parent.joinpath("./data/dataset/val"),
     "PATH_SPECTROGRAMS": Path(__file__).parent.joinpath("./data/spectrograms"),
     "PATH_EXPERIMENTS": Path("C:/siamese_runs"),
+    "PATH_RESULTS": Path(__file__).parent.joinpath("./data/results"),
     "PATH_CSV": Path(__file__).parent.joinpath("./data")
 }

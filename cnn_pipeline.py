@@ -9,9 +9,12 @@ import itertools
 import io
 import csv
 from random import shuffle
-
 import yaml
+import uuid
+import json
+
 import tensorflow as tf
+from tensorflow.keras.callbacks import TensorBoard
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics import confusion_matrix
@@ -30,13 +33,6 @@ Complete datapipeline for CNN classification.
 4. Load training/validation datasets as tf.dataset.Data
 5. Train CNN model and validate
 """
-
-
-
-
-
-
-from tensorflow.keras.callbacks import TensorBoard
 
 
 def log_confusion_matrix(epoch, logs):
@@ -126,6 +122,7 @@ def transform_image(image, label):
     """
     image = tf.image.rgb_to_grayscale(image)
     return tf.cast(image, tf.float32) / 255., label
+
 
 
 def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
@@ -286,7 +283,10 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
 
 def pipeline(configfile: Path):
 
-
+    if os.name == "nt":
+        from config import WINDOWS_PATHS as PATHS
+    else:
+        from config import CENTOS_PATHS as PATHS
     os.chdir(sys.path[1])
 
     with open(Path(__file__).parent.joinpath(configfile)) as file:
@@ -376,10 +376,14 @@ def pipeline(configfile: Path):
             model.summary()
             # Display the model summary.
 
-            history = model.fit(train, validation_data=val, epochs=max_epochs, batch_size=batch_size_exp, callbacks=[tensorboard_callback]).history
+            history = model.fit(train, validation_data=val,
+                                epochs=max_epochs,
+                                batch_size=batch_size_exp,
+                                callbacks=[tensorboard_callback]).history
             healthy_validation = len(list(path.joinpath("validation", "healthy").glob("*")))
             nonhealthy_validation = len(list(path.joinpath("validation", "nonhealthy").glob("*")))
             print(f"history keys {history.keys()}")
+
             results_to_write = {"model": f"{classifier.__name__}",
                                 "benchmark_value": 9999999,
                                 "TP": 0,
@@ -392,31 +396,38 @@ def pipeline(configfile: Path):
                                 "loss": f"{loss_function._name_scope}",
                                 "optimizer":  f"{optimizer_cnn._name}",
                                 "lr": f"{learning_rate_exp}",
+                                "epochs": f"{max_epochs}",
+                                "batch_size": f"{batch_size_exp}",
                                 "balance":  f"{balance}",
                                 "fft_len":  f"{fft_len}",
                                 "chunks": f"{chunk}",
-                                "image_size":f"{image_size}",
+                                "image_size": f"{image_size}",
                                 "val_ratio": f"{nonhealthy_validation / (nonhealthy_validation + healthy_validation)}"}
             # print(history)}
-            benchmark_auc = 0
+
             for idx, fp in enumerate(history["val_FP"]):
                 if history["val_FN"][idx] + fp < results_to_write["benchmark_value"]:
                     results_to_write["benchmark_value"] =  history["val_FN"][idx] + fp
-                    results_to_write["VAL_AUC"] = history["val_AUC"][idx]
+                    results_to_write["BENCHMARK_AUC"] = history["val_AUC"][idx]
                     results_to_write["TP"] = history["val_TP"][idx]
                     results_to_write["TN"] = history["val_TN"][idx]
                     results_to_write["FP"] = fp
                     results_to_write["FN"] = history["val_FN"][idx]
-
+            history_file = str(uuid.uuid4())
             results_to_write["VAL_AUC_MAX"] = max(history["val_AUC"])
             results_to_write["AUC_MAX"] = max(history["AUC"])
+            results_to_write["history_file"] = f"{history_file}.json"
+            results_to_write["configfile"] = configfile.name
 
-            with open("results.csv", "a", newline="") as csvfile:
+            with open(PATHS["PATH_RESULTS"].joinpath("results.csv"), "a", newline="") as csvfile:
                 fieldnames = [key for key in results_to_write.keys()]
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 if csvfile.tell() == 0:
                     writer.writeheader()
                 writer.writerow(results_to_write)
+
+            with open(PATHS["PATH_RESULTS"].joinpath(history_file + ".json"), "w") as fp:
+                json.dump(history, fp)
             # with open("results.txt", "a") as result_file:
             #     result_file.write(f"val auc max: {max(history['val_AUC'])}, auc max: {max(history['AUC'])},"
             #                       f"benchmark_value: {benchmark_value} - AUC {benchmark_auc} - val TP {benchmark_tp} - val TN {benchmark_tn} - val FP {benchmark_fp} - val FN {benchmark_fn} "
