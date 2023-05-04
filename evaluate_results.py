@@ -10,17 +10,21 @@ LAURA_RESULTS = {"f1": 72.99 / 100,
 
 def compute_metrics(history: dict):
     for idx, tp in enumerate(history["val_TP"]):
-        results = {"f1": 2 * tp / (2 * tp + history["val_FP"][idx] + history["val_FN"][idx]),
-                 "precision": tp / (tp + history["val_FP"][idx]),
-                 "recall": tp / (tp + history["val_FN"][idx]),
-                 "accuracy": (tp + history["val_TN"][idx]) / (history["val_FP"][idx] + history["val_FN"][idx] + tp + history["val_TN"][idx]),
-                 "specificity": history["val_TN"][idx] / (history["val_TN"][idx] + history["val_FP"][idx]),
-                 "auc": history["val_AUC"][idx]}
-        bool_result = [True if results[key] > LAURA_RESULTS[key] else False for key in results.keys()]
-        if all(bool_result):
-            epoch_result = [f"{key}: {results[key] > LAURA_RESULTS[key]} " for key in results.keys()]
-            print(epoch_result)
-            print(results)
+        try:
+            results = {"f1": 2 * tp / (2 * tp + history["val_FP"][idx] + history["val_FN"][idx]),
+                     "precision": tp / (tp + history["val_FP"][idx]),
+                     "recall": tp / (tp + history["val_FN"][idx]),
+                     "accuracy": (tp + history["val_TN"][idx]) / (history["val_FP"][idx] + history["val_FN"][idx] + tp + history["val_TN"][idx]),
+                     "specificity": history["val_TN"][idx] / (history["val_TN"][idx] + history["val_FP"][idx]),
+                     "auc": history["val_AUC"][idx]}
+            bool_result = [True if results[key] > LAURA_RESULTS[key] else False for key in results.keys()]
+            if all(bool_result):
+                epoch_result = [f"{key}: {results[key] > LAURA_RESULTS[key]} " for key in results.keys()]
+                print(epoch_result)
+                print(results)
+        except ZeroDivisionError:
+            print("zero division")
+
 if os.name == "nt":
     from config import WINDOWS_PATHS as PATHS
 else:
