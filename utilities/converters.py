@@ -8,7 +8,7 @@ from scipy import signal
 from scipy.io import wavfile
 import numpy as np
 import shutil
-import cv2
+# import cv2
 #from timeit import default_timer as timer
 from utilities.octave_filter_bank import octave_filtering
 
@@ -115,15 +115,15 @@ def rename_voiced(voiced_path: Path, destination_path: Path):
                             destination_path.joinpath(destination_filename))
 
 
-def path2image(paths: list, size: tuple):
-    """
-    Load images given by paths and resize them to desired size
-    :param paths: list with pathlike objects to images
-    :param size: tuple with desired image size
-    :return: list with loaded and resized images
-    """
-    converted_images = []
-    for image_path in paths:
-        image = cv2.imread(image_path)
-        converted_images.append(cv2.resize(image, size, interpolation=cv2.INTER_AREA))
-    return converted_images
+# def path2image(paths: list, size: tuple):
+#     """
+#     Load images given by paths and resize them to desired size
+#     :param paths: list with pathlike objects to images
+#     :param size: tuple with desired image size
+#     :return: list with loaded and resized images
+#     """
+#     converted_images = []
+#     for image_path in paths:
+#         image = cv2.imread(image_path)
+#         converted_images.append(cv2.resize(image, size, interpolation=cv2.INTER_AREA))
+#     return converted_images
