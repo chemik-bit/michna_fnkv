@@ -287,7 +287,7 @@ def pipeline(configfile: Path):
 
     if os.name == "nt":
         from config import WINDOWS_PATHS as PATHS
-        os.chdir(sys.path[1])
+        # os.chdir(sys.path[1])
     else:
         from config import CENTOS_PATHS as PATHS
 
