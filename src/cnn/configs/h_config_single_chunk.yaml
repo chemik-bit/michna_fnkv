@@ -9,7 +9,7 @@ balances: [False]
 wav_chunks: [1]
 octaves: []
 fft_lens: [256]
-fft_overlaps: [128, 64]
+fft_overlaps: [128]
 training_db: svd
 validation_db: voiced
 batch_size_exp: 4
