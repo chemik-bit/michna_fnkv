@@ -43,9 +43,12 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
     if octaves is not None:
         samples = octave_filtering(octaves, samples)
 
-    # if standard_chunk:
-    #     middle_point = int(len(samples) / 2)
-    #     samples = samples[- middle_point - 2000: - middle_point + 2000]
+    if standard_chunk:
+        if len(samples) > 8000:
+            middle_point = int(len(samples) / 2)
+            samples = samples[- middle_point - 4000: - middle_point + 4000]
+        else:
+            return
     frequencies, times, spectrogram = signal.spectrogram(samples,
                                                          sample_rate,
                                                          window=np.hamming(fft_window_length),

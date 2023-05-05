@@ -186,6 +186,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
         destination_path_spectrogram.mkdir(parents=True, exist_ok=True)
         print("Converting WAV files to spectrograms...")
         single_chunk = True if wav_chunks == 1 else False
+        print(f" single chunk {single_chunk}")
         for sound_file in destination_path_wav.iterdir():
             if not destination_path_spectrogram.joinpath(f"{sound_file.stem}.png").exists():
                 # Create spectrogram
