@@ -3,7 +3,7 @@ import json
 
 LAURA_RESULTS = {"f1": 72.99 / 100,
                  "precision": 80.65 / 100,
-                 "recall": 66.607 / 100,
+                 "recall": 66.67 / 100,
                  "accuracy": 64.42 / 100,
                  "specificity": 58.62 / 100,
                  "auc": 0.626}

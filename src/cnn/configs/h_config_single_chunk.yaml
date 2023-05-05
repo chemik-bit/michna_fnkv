@@ -1,0 +1,40 @@
+image_size:
+  1: [220, 220]
+  2: [230, 230]
+  3: [240, 240]
+  4: [250, 250]
+  5: [210, 210]
+  6: [200, 200]
+balances: [False]
+wav_chunks: [1]
+octaves: []
+fft_lens: [256]
+fft_overlaps: [128, 64]
+training_db: svd
+validation_db: voiced
+batch_size_exp: 4
+max_epochs: 150
+lr: 0.00001
+models: ["src.cnn.models.h_cnn001",
+         "src.cnn.models.h_cnn001_001",
+         "src.cnn.models.h_cnn001_002",
+         "src.cnn.models.h_cnn001_003",
+         "src.cnn.models.h_cnn001_004",
+         "src.cnn.models.h_cnn002",
+         "src.cnn.models.h_cnn002_001",
+         "src.cnn.models.h_cnn002_002",
+         "src.cnn.models.h_cnn002_003",
+         "src.cnn.models.h_cnn002_004",
+         "src.cnn.models.h_cnn002_005",
+         "src.cnn.models.h_cnn002_006",
+         "src.cnn.models.h_cnn002_007",
+         "src.cnn.models.h_cnn002_008",
+         "src.cnn.models.h_cnn002_009",
+         "src.cnn.models.h_cnn003",
+         "src.cnn.models.h_cnn004",
+         "src.cnn.models.h_cnn001_003_001",
+         "src.cnn.models.h_cnn001_003_002",
+         "src.cnn.models.h_cnn001_003_003",
+         "src.cnn.models.h_cnn001_003_004"]
+loss: focal_loss
+optimizer: adam

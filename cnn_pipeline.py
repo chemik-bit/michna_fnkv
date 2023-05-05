@@ -185,11 +185,12 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
         destination_path_spectrogram = PATHS["PATH_SPECTROGRAMS"].joinpath(db).joinpath(subdir_name)
         destination_path_spectrogram.mkdir(parents=True, exist_ok=True)
         print("Converting WAV files to spectrograms...")
+        single_chunk = True if wav_chunks == 1 else False
         for sound_file in destination_path_wav.iterdir():
             if not destination_path_spectrogram.joinpath(f"{sound_file.stem}.png").exists():
                 # Create spectrogram
                 wav2spectrogram(sound_file, destination_path_spectrogram, fft_len, fft_overlap,
-                                spectrogram_resolution, octaves=octaves)
+                                spectrogram_resolution, octaves=octaves, standard_chunk=single_chunk)
 
     print("Dataset splitting...")
     # 3. Create training/validation datasets

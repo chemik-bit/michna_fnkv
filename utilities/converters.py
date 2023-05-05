@@ -14,7 +14,7 @@ from utilities.octave_filter_bank import octave_filtering
 
 
 def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length: int, fft_overlap: int,
-                    spectrogram_resolution: tuple, dpi: int = 300, octaves: list = None):
+                    spectrogram_resolution: tuple, dpi: int = 300, octaves: list = None, standard_chunk: bool = False):
     """
     Converts sound file (source_path) to its spectrogram and save it to destination_path folder.
     Filename is the same as source sound file (but with .png extension).
@@ -25,6 +25,7 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
     :param spectrogram_resolution: resolution of the resulting image in pixels
     :param dpi: resolution density (dots per inch)
     :param octaves: used for octave filtering, ignored if not defined when calling the function
+    :param standard_chunk: used 1 chunk wav partitioning, so the last second of wav file is used
     :return: None
     """
     # Convert the dimensions from pixels to inches
@@ -41,6 +42,10 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
 
     if octaves is not None:
         samples = octave_filtering(octaves, samples)
+
+    # if standard_chunk:
+    #     middle_point = int(len(samples) / 2)
+    #     samples = samples[- middle_point - 2000: - middle_point + 2000]
     frequencies, times, spectrogram = signal.spectrogram(samples,
                                                          sample_rate,
                                                          window=np.hamming(fft_window_length),
@@ -82,9 +87,11 @@ def txt2wav(source_path: Path, destination_path: Path, sample_rate: int, chunks:
     destination_path.mkdir(parents=True, exist_ok=True)
     # print(source_path)
     txt_data = np.loadtxt(source_path)
-    wav_chunks = np.array_split(txt_data, chunks)
-    wav_chunks.pop(0)  # to remove bad data at start
-
+    if chunks > 1:
+        wav_chunks = np.array_split(txt_data, chunks)
+        wav_chunks.pop(0)  # to remove bad data at start
+    else:
+        wav_chunks = np.array_split(txt_data, chunks)
 
     for idx, wav_chunk in enumerate(wav_chunks):
         chunk_path = destination_path.joinpath(f"{source_path.stem}_{idx:05d}.wav")
