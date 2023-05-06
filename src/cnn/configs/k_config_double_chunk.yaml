@@ -6,7 +6,7 @@ image_size:
   5: [210, 210]
   6: [200, 200]
 balances: [False]
-wav_chunks: [1]
+wav_chunks: [2]
 octaves: []
 fft_lens: [256]
 fft_overlaps: [128]
