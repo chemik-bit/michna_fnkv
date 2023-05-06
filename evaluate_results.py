@@ -22,6 +22,7 @@ def compute_metrics(history: dict):
                 epoch_result = [f"{key}: {results[key] > LAURA_RESULTS[key]} " for key in results.keys()]
                 print(epoch_result)
                 print(results)
+                print(f"epoch: {idx}")
         except ZeroDivisionError:
             print("zero division")
 
