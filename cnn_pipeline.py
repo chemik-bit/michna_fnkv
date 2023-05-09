@@ -309,6 +309,8 @@ def pipeline(configfile: Path):
     optimizers = {"adam": tf.keras.optimizers.Adam,
                   "sgd": tf.keras.optimizers.SGD,
                   "rmsprop": tf.keras.optimizers.RMSprop}
+    transform = {"v1": transform_image,
+                "v2": transform_image2}
     for key in config["image_size"]:
         image_sizes.append(tuple(config["image_size"][key]))
 
@@ -323,6 +325,7 @@ def pipeline(configfile: Path):
     learning_rate_exp = config["lr"]
     models = config["models"]
     loss_function = losses[config["loss"]]()
+    transform_function = transform[config["transform"]]()
     # TODO handle lr schedule and different params for optimizers
     optimizer_cnn = optimizers[config["optimizer"]](learning_rate=learning_rate_exp)
 
@@ -346,8 +349,8 @@ def pipeline(configfile: Path):
                 path.joinpath("validation"),
                 image_size=image_size)
             print("Validation set loaded")
-            train = train.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
-            val = val.map(transform_image, num_parallel_calls=tf.data.AUTOTUNE)
+            train = train.map(transform_function, num_parallel_calls=tf.data.AUTOTUNE)
+            val = val.map(transform_function, num_parallel_calls=tf.data.AUTOTUNE)
             print("Sets transformed...")
             print(f"Model.. {classifier.__file__}")
             model = classifier.create_model(image_size)
@@ -430,7 +433,7 @@ def pipeline(configfile: Path):
             results_to_write["history_file"] = f"{history_file}.json"
             results_to_write["configfile"] = configfile.name
 
-            with open(PATHS["PATH_RESULTS"].joinpath("results.csv"), "a", newline="") as csvfile:
+            with open(PATHS["PATH_RESULTS"].joinpath("results_v2.csv"), "a", newline="") as csvfile:
                 fieldnames = [key for key in results_to_write.keys()]
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 if csvfile.tell() == 0:

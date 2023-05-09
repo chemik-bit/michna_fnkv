@@ -15,6 +15,7 @@ validation_db: voiced
 batch_size_exp: 4
 max_epochs: 150
 lr: 0.00001
+transform: v1
 models: ["src.cnn.models.h_cnn001_002_001",
          "src.cnn.models.h_cnn001_002_002",
          "src.cnn.models.h_cnn001_002_003",
