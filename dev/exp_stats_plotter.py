@@ -9,8 +9,9 @@ else:
     from config import CENTOS_PATHS as PATHS
 
 json_files = list(PATHS["PATH_RESULTS"].glob("*.json"))
-
-with open(PATHS["PATH_RESULTS"].joinpath("69add14c-bddb-48f9-be60-e4260517b86b.json"), "r") as f:
+",f1755636-1f2d-4b9e-bc04-296cef8227b9.json"
+"69add14c-bddb-48f9-be60-e4260517b86b.json"
+with open(PATHS["PATH_RESULTS"].joinpath("f1755636-1f2d-4b9e-bc04-296cef8227b9.json"), "r") as f:
     data = json.load(f)
     plt.figure()
     plt.plot(data["val_TP"], label="TP")

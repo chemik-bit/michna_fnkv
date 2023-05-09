@@ -123,7 +123,15 @@ def transform_image(image, label):
     image = tf.image.rgb_to_grayscale(image)
     return tf.cast(image, tf.float32) / 255., label
 
-
+def transform_image2(image, label):
+    """
+    Function to perform image transformation.
+    :param image: image to be transformed
+    :param label: image class label
+    :return: normalized image (-1,+1) as tf.float32 and its label
+    """
+    image = tf.image.rgb_to_grayscale(image)
+    return (tf.cast(image, tf.float32) - 127.5) / 127.5, label
 
 def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
                   fft_len: int, fft_overlap: int, spectrogram_resolution: tuple,
