@@ -304,8 +304,12 @@ def pipeline(configfile: Path):
         config = yaml.safe_load(file)
 
     image_sizes = []
-    losses = {"binary_crossentropy": tf.keras.losses.BinaryCrossentropy,
-              "focal_loss":  tf.keras.losses.BinaryFocalCrossentropy}
+    try:
+        losses = {"binary_crossentropy": tf.keras.losses.BinaryCrossentropy,
+                  "focal_loss":  tf.keras.losses.BinaryFocalCrossentropy}
+    except AttributeError:
+        losses = {"binary_crossentropy": tf.keras.losses.BinaryCrossentropy,
+                  "focal_loss": tf.keras.losses.BinaryCrossentropy}
     optimizers = {"adam": tf.keras.optimizers.Adam,
                   "sgd": tf.keras.optimizers.SGD,
                   "rmsprop": tf.keras.optimizers.RMSprop}
