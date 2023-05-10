@@ -329,7 +329,7 @@ def pipeline(configfile: Path):
     learning_rate_exp = config["lr"]
     models = config["models"]
     loss_function = losses[config["loss"]]()
-    transform_function = transform[config["transform"]]()
+    # transform_function = transform[config["transform"]]()
     # TODO handle lr schedule and different params for optimizers
     optimizer_cnn = optimizers[config["optimizer"]](learning_rate=learning_rate_exp)
 
@@ -353,8 +353,10 @@ def pipeline(configfile: Path):
                 path.joinpath("validation"),
                 image_size=image_size)
             print("Validation set loaded")
-            train = train.map(transform_function, num_parallel_calls=tf.data.AUTOTUNE)
-            val = val.map(transform_function, num_parallel_calls=tf.data.AUTOTUNE)
+            #train = train.map(transform_function, num_parallel_calls=tf.data.AUTOTUNE)
+            #val = val.map(transform_function, num_parallel_calls=tf.data.AUTOTUNE)
+            train = train.map(transform[config["transform"]], num_parallel_calls=tf.data.AUTOTUNE)
+            val = val.map(transform[config["transform"]], num_parallel_calls=tf.data.AUTOTUNE)
             print("Sets transformed...")
             print(f"Model.. {classifier.__file__}")
             model = classifier.create_model(image_size)
