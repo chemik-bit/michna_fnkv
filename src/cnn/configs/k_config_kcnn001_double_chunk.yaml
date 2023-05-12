@@ -28,6 +28,7 @@ models: ["src.cnn.models.k_cnn001_001",
          "src.cnn.models.k_cnn001_010",
          "src.cnn.models.k_cnn001_011",
          "src.cnn.models.k_cnn001_012",
+         "src.cnn.models.k_cnn001_013",
          ]
 loss: focal_loss
 optimizer: adam
