@@ -177,8 +177,8 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
         used_dbs = list({options["training"], options["validation"]})
         # Prepare wav files for mentioned databases in training and validation
     else:
-        print("converting both databases")
-        used_dbs = ["voiced", "svd"]
+        print("using voiced and svdadult databases")
+        used_dbs = ["voiced", "svdadult"]
         # Prepare wav files for both databases
 
     for db in used_dbs:
@@ -260,7 +260,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
     elif not destination_path_dataset.exists(): # non-specified
         destination_path_dataset = PATHS["PATH_DATASET"]\
             .joinpath(f"{subdir_name}_t_mixed_v_mixed")
-        source_files = list(PATHS["PATH_SPECTROGRAMS"].joinpath("svd").joinpath(subdir_name).iterdir()) + \
+        source_files = list(PATHS["PATH_SPECTROGRAMS"].joinpath("svdadult").joinpath(subdir_name).iterdir()) + \
                        list(PATHS["PATH_SPECTROGRAMS"].joinpath("voiced").joinpath(subdir_name).iterdir())
 
         # Obtaining unique samples (humans) in random order
