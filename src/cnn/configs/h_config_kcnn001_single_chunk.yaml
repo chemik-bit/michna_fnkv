@@ -13,7 +13,7 @@ fft_overlaps: [128]
 training_db: svdadult
 validation_db: voiced
 batch_size_exp: 4
-max_epochs: 1
+max_epochs: 150
 lr: 0.00001
 transform: v1
 models: ["src.cnn.models.k_cnn001_001",
