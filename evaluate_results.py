@@ -8,7 +8,7 @@ LAURA_RESULTS = {"f1": 72.99 / 100,
                  "specificity": 58.62 / 100,
                  "auc": 0.626}
 
-def compute_metrics(history: dict):
+def compute_metrics(history: dict, filename):
     for idx, tp in enumerate(history["val_TP"]):
         try:
             results = {"f1": 2 * tp / (2 * tp + history["val_FP"][idx] + history["val_FN"][idx]),
@@ -20,11 +20,13 @@ def compute_metrics(history: dict):
             bool_result = [True if results[key] > LAURA_RESULTS[key] else False for key in results.keys()]
             if all(bool_result):
                 epoch_result = [f"{key}: {results[key] > LAURA_RESULTS[key]} " for key in results.keys()]
-                print(epoch_result)
+                print(f"{filename.name} - {epoch_result} - epoch: {idx}")
                 print(results)
-                print(f"epoch: {idx}")
+                print("------------------------------------------------------------------------------------------")
         except ZeroDivisionError:
-            print("zero division")
+            pass
+            #print("zero division")
+            pass
 
 if os.name == "nt":
     from config import WINDOWS_PATHS as PATHS
@@ -36,7 +38,7 @@ json_files = list(PATHS["PATH_RESULTS"].glob("*.json"))
 for json_file in json_files:
     with open(json_file, "r") as f:
         data = json.load(f)
-        print(f"evaluating {json_file.name}....")
-        compute_metrics(data)
+        #print(f"evaluating {json_file.name}....")
+        compute_metrics(data, json_file)
 
 
