@@ -25,8 +25,7 @@ def compute_metrics(history: dict, filename):
                 print("------------------------------------------------------------------------------------------")
         except ZeroDivisionError:
             pass
-            #print("zero division")
-            pass
+
 
 if os.name == "nt":
     from config import WINDOWS_PATHS as PATHS
