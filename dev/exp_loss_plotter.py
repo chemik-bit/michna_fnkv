@@ -11,6 +11,7 @@ else:
 json_files = list(PATHS["PATH_RESULTS"].glob("*.json"))
 
 for json_file in json_files:
+    print(f"processing {json_file.name}")
     with open(json_file, "r") as f:
         data = json.load(f)
         plt.figure()
