@@ -17,15 +17,7 @@ max_epochs: 150
 lr: 0.00001
 transform: v1
 models: [
- 'src.cnn.models.h_cnn001_002_008',
- 'src.cnn.models.h_cnn001_002_009',
- 'src.cnn.models.h_cnn001_003',
- 'src.cnn.models.h_cnn001_003_001',
- 'src.cnn.models.h_cnn001_003_002',
- 'src.cnn.models.h_cnn001_003_003',
- 'src.cnn.models.h_cnn001_003_004',
- 'src.cnn.models.h_cnn001_004',
- 'src.cnn.models.h_cnn001_005',
+
  'src.cnn.models.h_cnn002',
  'src.cnn.models.h_cnn002_001',
  'src.cnn.models.h_cnn002_002',
