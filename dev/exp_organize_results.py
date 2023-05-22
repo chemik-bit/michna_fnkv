@@ -18,6 +18,9 @@ if __name__ == "__main__":
                 print(f"{row['history_file']} --> {row['configfile']}")
                 if row["configfile"][:-5] not in created_dirs:
                     print(row["configfile"][:-5])
-                    results_path.joinpath(row["configfile"][:-5]).mkdir()
+                    results_path.joinpath(row["configfile"][:-5]).mkdir(exist_ok=True)
                     created_dirs.append(row["configfile"][:-5])
-                shutil.copy(results_path.joinpath(row["history_file"]), results_path.joinpath(row["configfile"][:-5], row["history_file"]))
+                try:
+                    shutil.copy(results_path.joinpath(row["history_file"]), results_path.joinpath(row["configfile"][:-5], row["history_file"]))
+                except FileNotFoundError:
+                    pass
