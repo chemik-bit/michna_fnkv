@@ -1,0 +1,34 @@
+image_size:
+  1: [220, 220]
+  2: [230, 230]
+  3: [240, 240]
+  4: [250, 250]
+  5: [210, 210]
+  6: [200, 200]
+balances: [False]
+wav_chunks: [2]
+octaves: []
+fft_lens: [256]
+fft_overlaps: [128]
+training_db: svdadult
+validation_db: voiced
+batch_size_exp: 4
+max_epochs: 150
+lr: 0.00001
+transform: v1
+models: ["src.cnn.models.k_cnn001_001",
+         "src.cnn.models.k_cnn001_002",
+         "src.cnn.models.k_cnn001_003",
+         "src.cnn.models.k_cnn001_004",
+         "src.cnn.models.k_cnn001_005",
+         "src.cnn.models.k_cnn001_006",
+         "src.cnn.models.k_cnn001_007",
+         "src.cnn.models.k_cnn001_008",
+         "src.cnn.models.k_cnn001_009",
+         "src.cnn.models.k_cnn001_010",
+         "src.cnn.models.k_cnn001_011",
+         "src.cnn.models.k_cnn001_012",
+         "src.cnn.models.k_cnn001_013",
+         ]
+loss: focal_loss
+optimizer: adam

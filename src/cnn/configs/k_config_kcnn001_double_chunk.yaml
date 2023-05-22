@@ -13,22 +13,13 @@ fft_overlaps: [128]
 training_db: svdadult
 validation_db: voiced
 batch_size_exp: 4
-max_epochs: 1
+max_epochs: 150
 lr: 0.00001
 transform: v1
-models: ["src.cnn.models.k_cnn001_001",
-         "src.cnn.models.k_cnn001_002",
-         "src.cnn.models.k_cnn001_003",
-         "src.cnn.models.k_cnn001_004",
-         "src.cnn.models.k_cnn001_005",
-         "src.cnn.models.k_cnn001_006",
-         "src.cnn.models.k_cnn001_007",
-         "src.cnn.models.k_cnn001_008",
-         "src.cnn.models.k_cnn001_009",
-         "src.cnn.models.k_cnn001_010",
-         "src.cnn.models.k_cnn001_011",
-         "src.cnn.models.k_cnn001_012",
-         "src.cnn.models.k_cnn001_013",
+models: [
+         "src.cnn.models.k_cnn001_0013",
+         "src.cnn.models.k_cnn001_0014",
+         "src.cnn.models.k_cnn001_0015",
          ]
 loss: focal_loss
 optimizer: adam
