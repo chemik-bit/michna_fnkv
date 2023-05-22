@@ -32,12 +32,22 @@ if os.name == "nt":
 else:
     from config import CENTOS_PATHS as PATHS
 
-json_files = list(PATHS["PATH_RESULTS"].glob("*.json"))
+result_dirs = []
+for item in PATHS["PATH_RESULTS"].iterdir():
+    if not (".") in str(item.name):
+        result_dirs.append(item)
 
-for json_file in json_files:
-    with open(json_file, "r") as f:
-        data = json.load(f)
-        #print(f"evaluating {json_file.name}....")
-        compute_metrics(data, json_file)
+for directory in result_dirs:
+    json_files = list(directory.glob("*.json"))
+    print("*********************************************************")
+    print("*********************************************************")
+    print(f"Processing {directory}")
+
+
+    for json_file in json_files:
+        with open(json_file, "r") as f:
+            data = json.load(f)
+            #print(f"evaluating {json_file.name}....")
+            compute_metrics(data, json_file)
 
 
