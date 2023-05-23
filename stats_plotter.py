@@ -11,7 +11,7 @@ else:
 json_files = list(PATHS["PATH_RESULTS"].glob("*.json"))
 ",f1755636-1f2d-4b9e-bc04-296cef8227b9.json"
 "69add14c-bddb-48f9-be60-e4260517b86b.json"
-with open(PATHS["PATH_RESULTS"].joinpath("f1755636-1f2d-4b9e-bc04-296cef8227b9.json"), "r") as f:
+with open(PATHS["PATH_RESULTS"].joinpath("h_svd_svd_cont","c0ccc764-019e-4101-a699-d787ada6526d.json"), "r") as f:
     data = json.load(f)
     plt.figure()
     plt.plot(data["val_TP"], label="TP")

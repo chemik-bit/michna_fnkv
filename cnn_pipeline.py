@@ -446,7 +446,9 @@ def pipeline(configfile: Path):
                     writer.writeheader()
                 writer.writerow(results_to_write)
 
-            with open(PATHS["PATH_RESULTS"].joinpath(history_file + ".json"), "w") as fp:
+            PATHS["PATH_RESULTS"].joinpath(configfile.stem).mkdir(exist_ok=True)
+
+            with open(PATHS["PATH_RESULTS"].joinpath(configfile.stem, history_file + ".json"), "w") as fp:
                 json.dump(history, fp)
             # with open("results.txt", "a") as result_file:
             #     result_file.write(f"val auc max: {max(history['val_AUC'])}, auc max: {max(history['AUC'])},"
