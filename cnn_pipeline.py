@@ -134,7 +134,7 @@ def transform_image2(image, label):
     return (tf.cast(image, tf.float32) - 127.5) / 127.5, label
 
 def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
-                  fft_len: int, fft_overlap: int, spectrogram_resolution: tuple,
+                  fft_len: int, fft_overlap: int, spectrogram_resolution: tuple, resampling_frequency: float,
                   **options):
     """
     Function providing the data pipelining.
@@ -147,6 +147,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
     :param fft_len: lenght of fft window to generate spectrogram
     :param fft_overlap: overlaping of fft windows to generate spectrogram
     :param spectrogram_resolution: spectrogram image resolution
+    :param resampling_frequency: frequency to which the samples are to resample
     :param training_db: selection from databases for training dataset. Options 'voiced', 'svd', 'mixed'
     :param validation_db: selection from databases for validation dataset. Options 'voiced', 'svd', 'mixed'
     :return: path to folder with training and validation set (spectrogram images)
@@ -169,7 +170,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
                   f"res{spectrogram_resolution[0]}x{spectrogram_resolution[1]}_" \
                   f"octaves{''.join(map(str, octaves))}_" \
                   f"fft{fft_len}_" \
-                  f"overlap{fft_overlap}"
+                  f"overlap{fft_overlap}_resample{resampling_frequency}"
 
     # 1. Convert wavs to chunks
     # Check options
@@ -199,7 +200,8 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
             if not destination_path_spectrogram.joinpath(f"{sound_file.stem}.png").exists():
                 # Create spectrogram
                 wav2spectrogram(sound_file, destination_path_spectrogram, fft_len, fft_overlap,
-                                spectrogram_resolution, octaves=octaves, standard_chunk=single_chunk)
+                                spectrogram_resolution, octaves=octaves, standard_chunk=single_chunk,
+                                resampling_freq=resampling_frequency)
 
     print("Dataset splitting...")
     # 3. Create training/validation datasets
@@ -329,6 +331,10 @@ def pipeline(configfile: Path):
     learning_rate_exp = config["lr"]
     models = config["models"]
     loss_function = losses[config["loss"]]()
+    if "resampling_frequency" in config.keys():
+        resampling_frequency = config["resampling_frequency"]
+    else:
+        resampling_frequency = None
     # transform_function = transform[config["transform"]]()
     # TODO handle lr schedule and different params for optimizers
     optimizer_cnn = optimizers[config["optimizer"]](learning_rate=learning_rate_exp)
@@ -338,7 +344,8 @@ def pipeline(configfile: Path):
         for fft_len, balance, chunk, image_size in itertools.product(fft_lens, balances, chunks, image_sizes):
             print(f"Entering data_pipeline.... {image_size}")
             path = data_pipeline(chunk, [], balance, fft_len, fft_len // 2, image_size,
-                                 training=training_db, validation=validation_db)
+                                 training=training_db, validation=validation_db,
+                                 resampling_frequency=resampling_frequency)
             # path = data_pipeline(chunk, [3, 4, 5, 6], balance, fft_len, fft_len // 2, image_size)
             print("Exited data_pipeline....")
             print("Loading datasets....")
