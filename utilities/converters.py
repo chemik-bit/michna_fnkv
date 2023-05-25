@@ -14,7 +14,8 @@ from utilities.octave_filter_bank import octave_filtering
 
 
 def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length: int, fft_overlap: int,
-                    spectrogram_resolution: tuple, dpi: int = 300, octaves: list = None, standard_chunk: bool = False):
+                    spectrogram_resolution: tuple, dpi: int = 300, octaves: list = None, standard_chunk: bool = False,
+                    resampling_freq: float = None):
     """
     Converts sound file (source_path) to its spectrogram and save it to destination_path folder.
     Filename is the same as source sound file (but with .png extension).
@@ -26,6 +27,7 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
     :param dpi: resolution density (dots per inch)
     :param octaves: used for octave filtering, ignored if not defined when calling the function
     :param standard_chunk: used 1 chunk wav partitioning, so the last second of wav file is used
+    :param resampling_freq: used for resampling recordings to the same frequency
     :return: None
     """
     # Convert the dimensions from pixels to inches
@@ -36,8 +38,8 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
     if octaves is None:
         octaves = []
     sample_rate, samples = wavfile.read(source_path)
-    if "svd" in str(source_path.resolve()):
-        number_of_samples = round(len(samples) * float(8000) / sample_rate)
+    if resampling_freq is not None:
+        number_of_samples = round(len(samples) * resampling_freq / sample_rate)
         samples = signal.resample(samples, number_of_samples)
 
     if octaves is not None:
