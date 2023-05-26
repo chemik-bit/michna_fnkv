@@ -16,3 +16,4 @@ def create_model(input_size):
     x.add(layers.Dense(1, activation="sigmoid"))
     x.compile(loss=tf.losses.binary_crossentropy, optimizer="adam", metrics=["val_accuracy"])
     return x
+
