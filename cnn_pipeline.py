@@ -220,7 +220,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
                 "training": unique_samples_all[
                             :int(train_to_val_ratio / (train_to_val_ratio + 1) * len(unique_samples_all))],
                 "validation": unique_samples_all[
-                              int(train_to_val_ratio / (train_to_val_ratio + 1) * len(unique_samples_all)) - 1:]
+                              int(train_to_val_ratio / (train_to_val_ratio + 1) * len(unique_samples_all)):]
             }
 
             # Splitting samples
@@ -341,9 +341,9 @@ def pipeline(configfile: Path):
 
     for eval_model in models:
         classifier = importlib.import_module(eval_model)
-        for fft_len, balance, chunk, image_size in itertools.product(fft_lens, balances, chunks, image_sizes):
+        for fft_len, fft_overlap, balance, chunk, image_size in itertools.product(fft_lens, fft_overlaps, balances, chunks, image_sizes):
             print(f"Entering data_pipeline.... {image_size}")
-            path = data_pipeline(chunk, [], balance, fft_len, fft_len // 2, image_size,
+            path = data_pipeline(chunk, [], balance, fft_len, fft_overlap, image_size,
                                  training=training_db, validation=validation_db,
                                  resampling_frequency=resampling_frequency)
             # path = data_pipeline(chunk, [3, 4, 5, 6], balance, fft_len, fft_len // 2, image_size)
@@ -427,9 +427,11 @@ def pipeline(configfile: Path):
                                 "batch_size": f"{batch_size_exp}",
                                 "balance":  f"{balance}",
                                 "fft_len":  f"{fft_len}",
+                                "fft_overlap": f"{fft_overlap}",
                                 "chunks": f"{chunk}",
                                 "image_size": f"{image_size}",
-                                "val_ratio": f"{nonhealthy_validation / (nonhealthy_validation + healthy_validation)}"}
+                                "val_ratio": f"{nonhealthy_validation / (nonhealthy_validation + healthy_validation)}",
+                                "resampling": f"{resampling_frequency}"}
             # print(history)}
 
             for idx, fp in enumerate(history["val_FP"]):
@@ -446,7 +448,7 @@ def pipeline(configfile: Path):
             results_to_write["history_file"] = f"{history_file}.json"
             results_to_write["configfile"] = configfile.name
 
-            with open(PATHS["PATH_RESULTS"].joinpath("results_v2.csv"), "a", newline="") as csvfile:
+            with open(PATHS["PATH_RESULTS"].joinpath("results_v3.csv"), "a", newline="") as csvfile:
                 fieldnames = [key for key in results_to_write.keys()]
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 if csvfile.tell() == 0:
