@@ -1,0 +1,31 @@
+image_size:
+  1: [100, 200]
+  2: [100, 230]
+  3: [100, 260]
+  4: [100, 290]
+  5: [100, 320]
+  6: [200, 100]
+  7: [230, 100]
+  8: [260, 100]
+  9: [290, 100]
+  10: [320, 100]
+balances: [False]
+wav_chunks: [1]
+octaves: []
+fft_lens: [256, 512, 1024, 2048]
+fft_overlaps: [16, 32, 64, 128, 256, 512, 1024, 1536]
+training_db: svdadult
+validation_db: svdadult
+batch_size_exp: 8
+max_epochs: 100
+lr: 0.00001
+transform: v1
+models: ['src.cnn.models.cnn_2conv3x3_001_dropout00_strides11_maxpool2x2_global_avg',
+ 'src.cnn.models.cnn_2conv3x3_001_dropout05_strides11_maxpool2x2_global_avg',
+ 'src.cnn.models.cnn_2conv3x3_002_dropout00_strides11_maxpool2x2_global_avg',
+ 'src.cnn.models.cnn_2conv3x3_002_dropout50_strides11_maxpool2x2_global_avg',
+ 'src.cnn.models.cnn_2conv3x3_003_dropout00_strides11_maxpool2x2_global_avg',
+ 'src.cnn.models.cnn_2conv3x3_003_dropout50_strides11_maxpool2x2_global_avg',]
+loss: focal_loss
+optimizer: adam
+resampling_frequency: 8000
