@@ -1,0 +1,17 @@
+image_size:
+  1: [100, 220]
+balances: [False]
+wav_chunks: [1]
+octaves: []
+fft_lens: [128, 256]
+fft_overlaps: [128, 129, 127]
+training_db: svdadult
+validation_db: svdadult
+batch_size_exp: 8
+max_epochs: 100
+lr: 0.00001
+transform: v1
+models: ['src.cnn.models.k_cnnS_004_003']
+loss: focal_loss
+optimizer: adam
+resampling_frequency: 3000 # can be omitted
