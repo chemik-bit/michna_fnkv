@@ -1,5 +1,9 @@
+"""
+Module to check results against Laura Verdes article
+"""
 import os
 import json
+
 
 LAURA_RESULTS = {"f1": 72.99 / 100,
                  "precision": 80.65 / 100,
