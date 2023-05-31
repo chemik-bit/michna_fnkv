@@ -1,3 +1,4 @@
+import socket
 import importlib
 import argparse
 import os
@@ -452,7 +453,7 @@ def pipeline(configfile: Path):
                 results_to_write["history_file"] = f"{history_file}.json"
                 results_to_write["configfile"] = configfile.name
 
-                with open(PATHS["PATH_RESULTS"].joinpath("results_v3.csv"), "a", newline="") as csvfile:
+                with open(PATHS["PATH_RESULTS"].joinpath(socket.gethostname() + "_results_v3.csv"), "a", newline="") as csvfile:
                     fieldnames = [key for key in results_to_write.keys()]
                     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                     if csvfile.tell() == 0:
