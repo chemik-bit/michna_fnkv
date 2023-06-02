@@ -20,8 +20,8 @@ def create_model(input_size):
     x.add(layers.MaxPooling2D(pool_size=(2, 2), strides=(1, 1)))
     x.add(layers.AveragePooling2D(pool_size=(2, 2), strides=(1, 1)))
     x.add(layers.Dropout(0.5))
-    #x.add(layers.GlobalAveragePooling2D())
     x.add(layers.GlobalAveragePooling2D())
+    x.add(layers.Dense(600, activation="relu", kernel_regularizer="l2"))
     x.add(layers.Dense(1, activation="sigmoid"))
     x.compile(loss=tf.losses.binary_crossentropy, optimizer="adam", metrics=["val_accuracy"])
     return x
