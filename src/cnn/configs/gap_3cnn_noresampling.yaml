@@ -106,4 +106,3 @@ models: ['src.cnn.models.h_cnn001_002_001_gap',
 
 loss: focal_loss
 optimizer: adam
-resampling_frequency: 50000

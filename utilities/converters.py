@@ -37,7 +37,9 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
     # Create spectrogram
     if octaves is None:
         octaves = []
+
     sample_rate, samples = wavfile.read(source_path)
+
     if resampling_freq is not None:
         number_of_samples = round(len(samples) * resampling_freq / sample_rate)
         samples = signal.resample(samples, number_of_samples)
@@ -47,7 +49,7 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
         samples = octave_filtering(octaves, samples)
 
     if standard_chunk:
-        if len(samples) > sample_rate:
+        if len(samples) > sample_rate + 1:
             middle_point = int(len(samples) / 2)
             samples = samples[- middle_point - int(sample_rate / 2): - middle_point + int(sample_rate / 2)]
         else:
