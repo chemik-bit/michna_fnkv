@@ -55,7 +55,8 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
         else:
             return
     frequencies, times, spectrogram = signal.spectrogram(samples,
-                                                         sample_rate,
+                                                         fs=sample_rate,
+                                                         scaling="spectrum", nfft=None, mode="psd",
                                                          window=np.hamming(fft_window_length),
                                                          noverlap=fft_overlap)
 
