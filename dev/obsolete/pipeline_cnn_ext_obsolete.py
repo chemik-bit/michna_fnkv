@@ -7,7 +7,7 @@ import inspect
 import numpy as np
 from src.conversion import convert_voiced
 from src.voiced_to_lists import voiced_to_list
-from src.cnn.models.h_cnn001_gap import create_model
+from src.cnn.models.obsolete.h_cnn001_gap import create_model
 import tensorflow as tf
 from utilities.converters import path2image
 

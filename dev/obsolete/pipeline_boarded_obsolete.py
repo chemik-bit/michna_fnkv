@@ -17,13 +17,13 @@ from scipy.io import wavfile
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics import confusion_matrix
-from src.cnn.models.h_cnn001_gap import create_model
+from src.cnn.models.obsolete.h_cnn001_gap import create_model
 from utilities.converters import txt2wav
 from utilities.octave_filter_bank import octave_filtering
 import itertools
 import io
 import sklearn.metrics
-import tensorflow_addons as tfa
+
 
 def log_confusion_matrix(epoch, logs):
     # Use the model to predict the values from the test_images.
@@ -267,7 +267,6 @@ for fft_len in fft_lens:
                 optimizer_cnn = tf.keras.optimizers.Adam(learning_rate=0.00001)
                 log_dir = "logs"
                 # tensorboard stuff
-                from tensorflow.keras.callbacks import TensorBoard
 
                 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="logs")
                 # callbacks = [TensorBoard(log_dir=log_dir,

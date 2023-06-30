@@ -18,13 +18,14 @@ start = fix(center - data_len / 2 * new_sample_rate);
 stop = fix(center + data_len / 2 * new_sample_rate);
 data = data(start:stop);
 
-fig = figure("units", "pixels", "Position", [0 500 399 26]);
-ax = axes(fig);
-ax.Position = [0 0 1 1];
-spectrogram(data, fix(window_len*new_sample_rate), overlap, "power", "xaxis");
-colorbar(ax, "off")
-set(ax, "xtick", [])
-set(ax, "ytick", [])
-set(fig, 'MenuBar', 'none');
-set(fig, 'ToolBar', 'none');
-colormap gray
+% fig = figure("units", "pixels", "Position", [0 500 399 26]);
+% ax = axes(fig);
+% ax.Position = [0 0 1 1];
+spectrogram(data, fix(window_len*new_sample_rate), 128, "power", "yaxis");
+[s,f,t] = spectrogram(data, 256, overlap, "power", "xaxis");
+% colorbar(ax, "off")
+% set(ax, "xtick", [])
+% set(ax, "ytick", [])
+% set(fig, 'MenuBar', 'none');
+% set(fig, 'ToolBar', 'none');
+% colormap gray
