@@ -15,7 +15,7 @@ LAURA_RESULTS = {"f1": 80.00 / 100,
                  "precision": 74.44 / 100,
                  "recall": 86.45 / 100,
                  "accuracy": 73.93 / 100,
-                 "specificity": 54.9 / 100,
+                 "specificity": 0, # 54.9 / 100,
                  "auc": 0.707}
 
 def compute_metrics(history: dict, filename):

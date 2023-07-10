@@ -8,17 +8,42 @@ if os.name == "nt":
 else:
     from config import CENTOS_PATHS as PATHS
 
-json_files = list(PATHS["PATH_RESULTS"].glob("*.json"))
-",f1755636-1f2d-4b9e-bc04-296cef8227b9.json"
-"69add14c-bddb-48f9-be60-e4260517b86b.json"
-with open(PATHS["PATH_RESULTS"].joinpath("h_svd_svd_cont","c0ccc764-019e-4101-a699-d787ada6526d.json"), "r") as f:
+json_files = list(PATHS["PATH_RESULTS"].joinpath("h_conv_rectangular_noresample_fft25ms_overlap50_lr000001").glob("*.json"))
+
+with open(PATHS["PATH_RESULTS"].joinpath("h_conv_rectangular_noresample_fft25ms_overlap50_lr000001","7891779e-44e1-4ace-9df1-6743fd0ef700.json"), "r") as f:
     data = json.load(f)
     plt.figure()
     plt.plot(data["val_TP"], label="TP")
     plt.plot(data["val_TN"], "r", label="TN")
     plt.plot(data["val_FP"], "g", label="FP")
     plt.plot(data["val_FN"], "k", label="FN")
+    plt.plot([idx + value for idx, value in zip(data["val_FN"], data["val_FP"])], "c", label="Benchmark")
     plt.legend()
     plt.show()
 
-
+    plt.figure()
+    history = data
+    results = {"f1": [],
+                "precision": [],
+                "recall": [],
+                "accuracy": [],
+                "specificity": [],
+                "auc": []}
+    for idx, tp in enumerate(data["val_TP"]):
+        try:
+            results["f1"].append(2 * tp / (2 * tp + history["val_FP"][idx] + history["val_FN"][idx]))
+            results["precision"].append(tp / (tp + history["val_FP"][idx]))
+            results["recall"].append(tp / (tp + history["val_FN"][idx]))
+            results["accuracy"].append((tp + history["val_TN"][idx]) / (history["val_FP"][idx] + history["val_FN"][idx] + tp + history["val_TN"][idx]))
+            results["specificity"].append(history["val_TN"][idx] / (history["val_TN"][idx] + history["val_FP"][idx]))
+            results["auc"].append(history["val_AUC"][idx])
+        except:
+            pass
+    plt.plot(results["f1"], "r", label="F1")
+    plt.plot(results["precision"], "b", label="Precision")
+    plt.plot(results["recall"], "k", label="Recall")
+    plt.plot(results["accuracy"], "g", label="Acc")
+    plt.plot(results["specificity"], "c", label="specificity")
+    plt.plot(results["auc"], "m", label="auc")
+    plt.legend()
+    plt.show()
