@@ -331,7 +331,10 @@ def pipeline(configfile: Path):
     max_epochs = config["max_epochs"]
     learning_rate_exp = config["lr"]
     models = config["models"]
-    loss_function = losses[config["loss"]]()
+    if config["loss"] == "focal_loss":
+        loss_function = losses[config["loss"]](gamma=config["focal_loss_gamma"])
+    else:
+        loss_function = losses[config["loss"]]()
     if "resampling_frequency" in config.keys():
         resampling_frequency = config["resampling_frequency"]
     else:
