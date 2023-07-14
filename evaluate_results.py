@@ -15,7 +15,7 @@ LAURA_RESULTS = {"f1": 80.00 / 100,
                  "precision": 74.44 / 100,
                  "recall": 86.45 / 100,
                  "accuracy": 73.93 / 100,
-                 "specificity": 0, # 54.9 / 100,
+                 "specificity":  54.9 / 100,
                  "auc": 0.707}
 
 def compute_metrics(history: dict, filename):
@@ -27,7 +27,7 @@ def compute_metrics(history: dict, filename):
                      "accuracy": (tp + history["val_TN"][idx]) / (history["val_FP"][idx] + history["val_FN"][idx] + tp + history["val_TN"][idx]),
                      "specificity": history["val_TN"][idx] / (history["val_TN"][idx] + history["val_FP"][idx]),
                      "auc": history["val_AUC"][idx]}
-            bool_result = [True if results[key] > LAURA_RESULTS[key] - 0.02 else False for key in results.keys()]
+            bool_result = [True if results[key] > LAURA_RESULTS[key] - 0.0 else False for key in results.keys()]
             if all(bool_result):
                 epoch_result = [f"{key}: {results[key] > LAURA_RESULTS[key]} " for key in results.keys()]
                 print(f"{filename.name} - {epoch_result} - epoch: {idx}")
