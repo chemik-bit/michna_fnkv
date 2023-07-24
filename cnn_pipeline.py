@@ -385,9 +385,13 @@ def pipeline(configfile: Path):
                 #optimizer_cnn = tf.keras.optimizers.SGD(lr=0.01)
                 log_dir = "logs"
                 # tensorboard stuff
+                history_file = str(uuid.uuid4())
 
-
-                tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="logs")
+                tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=f"logs/{history_file}")
+                early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='loss',
+                                                                           patience=50,
+                                                                           verbose=1,
+                                                                           mode="min")
                 # callbacks = [TensorBoard(log_dir=log_dir,
                 #                          histogram_freq=1,
                 #                          write_graph=True,
@@ -395,8 +399,8 @@ def pipeline(configfile: Path):
                 #                          update_freq='epoch',
                 #                          profile_batch=2,
                 #                          embeddings_freq=1)]
-                file_writer_cm = tf.summary.create_file_writer(log_dir + '/cm')
-                cm_callback = tf.keras.callbacks.LambdaCallback(on_epoch_end=log_confusion_matrix)
+                # file_writer_cm = tf.summary.create_file_writer(log_dir + '/cm')
+                # cm_callback = tf.keras.callbacks.LambdaCallback(on_epoch_end=log_confusion_matrix)
                 metrics_list = ["accuracy",
                                 tf.keras.metrics.TruePositives(name="TP"),
                                 tf.keras.metrics.TrueNegatives(name="TN"),
@@ -414,7 +418,7 @@ def pipeline(configfile: Path):
                 history = model.fit(train, validation_data=val,
                                     epochs=max_epochs,
                                     batch_size=batch_size_exp,
-                                    callbacks=[tensorboard_callback]).history
+                                    callbacks=[tensorboard_callback, early_stopping_callback]).history
                 healthy_validation = len(list(path.joinpath("validation", "healthy").glob("*")))
                 nonhealthy_validation = len(list(path.joinpath("validation", "nonhealthy").glob("*")))
                 print(f"history keys {history.keys()}")
@@ -450,7 +454,7 @@ def pipeline(configfile: Path):
                         results_to_write["TN"] = history["val_TN"][idx]
                         results_to_write["FP"] = fp
                         results_to_write["FN"] = history["val_FN"][idx]
-                history_file = str(uuid.uuid4())
+
                 results_to_write["VAL_AUC_MAX"] = max(history["val_AUC"])
                 results_to_write["AUC_MAX"] = max(history["AUC"])
                 results_to_write["history_file"] = f"{history_file}.json"

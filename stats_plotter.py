@@ -10,7 +10,7 @@ else:
 
 json_files = list(PATHS["PATH_RESULTS"].joinpath("h_conv_rectangular_noresample_fft25ms_overlap50_lr000001").glob("*.json"))
 
-with open(PATHS["PATH_RESULTS"].joinpath("h_conv_rectangular_noresample_fft25ms_overlap50_lr000001","7891779e-44e1-4ace-9df1-6743fd0ef700.json"), "r") as f:
+with open(PATHS["PATH_RESULTS"].joinpath("test_cfg","3a2b6db9-c048-4a17-88af-647c9fe88be7.json"), "r") as f:
     data = json.load(f)
     plt.figure()
     plt.plot(data["val_TP"], label="TP")
