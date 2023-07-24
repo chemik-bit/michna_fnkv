@@ -35,6 +35,34 @@ Complete datapipeline for CNN classification.
 5. Train CNN model and validate
 """
 
+from sklearn.metrics import confusion_matrix
+
+class Benchmark(tf.keras.metrics.Metric):
+    """
+    A custom metric that sums up the false positive and false negative results.
+    """
+    def __init__(self, name='benchmark', **kwargs):
+        super(Benchmark, self).__init__(**kwargs)
+        self.false_positives = self.add_weight(name='false_positives', initializer='zeros')
+        self.false_negatives = self.add_weight(name='false_negatives', initializer='zeros')
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        y_pred = tf.math.round(y_pred)  # Convert probabilities to binary predictions
+        y_true = tf.cast(y_true, dtype=tf.bool)
+        y_pred = tf.cast(y_pred, dtype=tf.bool)
+
+        false_positives = tf.reduce_sum(tf.cast(tf.logical_and(tf.logical_not(y_true), y_pred), dtype=tf.float32))
+        false_negatives = tf.reduce_sum(tf.cast(tf.logical_and(y_true, tf.logical_not(y_pred)), dtype=tf.float32))
+
+        self.false_positives.assign_add(false_positives)
+        self.false_negatives.assign_add(false_negatives)
+
+    def result(self):
+        return self.false_positives + self.false_negatives
+
+    def reset_states(self):
+        self.false_positives.assign(0)
+        self.false_negatives.assign(0)
 
 def log_confusion_matrix(epoch, logs):
     # Use the model to predict the values from the test_images.
@@ -387,6 +415,7 @@ def pipeline(configfile: Path):
                 # tensorboard stuff
                 history_file = str(uuid.uuid4())
 
+                benchmark_metric = Benchmark()
                 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=f"logs/{history_file}")
                 early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='loss',
                                                                            patience=50,
@@ -402,6 +431,7 @@ def pipeline(configfile: Path):
                 # file_writer_cm = tf.summary.create_file_writer(log_dir + '/cm')
                 # cm_callback = tf.keras.callbacks.LambdaCallback(on_epoch_end=log_confusion_matrix)
                 metrics_list = ["accuracy",
+                                benchmark_metric,
                                 tf.keras.metrics.TruePositives(name="TP"),
                                 tf.keras.metrics.TrueNegatives(name="TN"),
                                 tf.keras.metrics.FalsePositives(name="FP"),
