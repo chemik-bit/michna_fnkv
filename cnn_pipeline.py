@@ -60,7 +60,7 @@ class Benchmark(tf.keras.metrics.Metric):
     def result(self):
         return self.false_positives + self.false_negatives
 
-    def reset_states(self):
+    def reset_state(self):
         self.false_positives.assign(0)
         self.false_negatives.assign(0)
 
@@ -330,6 +330,7 @@ def pipeline(configfile: Path):
     else:
         from config import CENTOS_PATHS as PATHS
 
+    benchmark_metric = Benchmark()
 
     with open(Path(__file__).parent.joinpath(configfile)) as file:
         config = yaml.safe_load(file)
@@ -415,7 +416,6 @@ def pipeline(configfile: Path):
                 # tensorboard stuff
                 history_file = str(uuid.uuid4())
 
-                benchmark_metric = Benchmark()
                 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=f"logs/{history_file}")
                 early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='loss',
                                                                            patience=50,
