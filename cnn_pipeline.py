@@ -370,7 +370,7 @@ def pipeline(configfile: Path):
         resampling_frequency = None
     # transform_function = transform[config["transform"]]()
     # TODO handle lr schedule and different params for optimizers
-    optimizer_cnn = optimizers[config["optimizer"]](learning_rate=learning_rate_exp)
+
 
     for eval_model in models:
         classifier = importlib.import_module(eval_model)
@@ -440,6 +440,17 @@ def pipeline(configfile: Path):
                                 tf.keras.metrics.Recall(name="Recall"),
                                 tf.keras.metrics.AUC(name="AUC")]
 
+                initial_learning_rate = learning_rate_exp
+                final_learning_rate = learning_rate_exp / 1000
+                learning_rate_decay_factor = (final_learning_rate / initial_learning_rate) ** (1 / max_epochs)
+                steps_per_epoch = int(len(list(train)) / batch_size_exp)
+
+                lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+                    initial_learning_rate=initial_learning_rate,
+                    decay_steps=steps_per_epoch,
+                    decay_rate=learning_rate_decay_factor,
+                    staircase=True)
+                optimizer_cnn = optimizers[config["optimizer"]](learning_rate=lr_schedule)
 
                 model.compile(loss=loss_function, optimizer=optimizer_cnn, metrics=metrics_list)
                 model.summary()
