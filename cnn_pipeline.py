@@ -162,6 +162,51 @@ def transform_image2(image, label):
     image = tf.image.rgb_to_grayscale(image)
     return (tf.cast(image, tf.float32) - 127.5) / 127.5, label
 
+def balance_by_duplication(dataset_path):
+    """
+    Args:
+        dataset_path: path to the dataset that needs to be augmented
+
+    Returns:
+        None
+    """
+    # List of healthy and nonhealthy samples
+    healthy_set = list(dataset_path.joinpath("training").joinpath("healthy").iterdir())
+    nonhealthy_set = list(dataset_path.joinpath("training").joinpath("nonhealthy").iterdir())
+    healthy_count = len(healthy_set)
+    nonhealthy_count = len(nonhealthy_set)
+
+    # Choosing the part of the dataset that needs augmentation
+    if nonhealthy_count > healthy_count:
+        short_dataset = healthy_set
+        long_dataset_count = nonhealthy_count
+    else:
+        short_dataset = nonhealthy_set
+        long_dataset_count = healthy_count
+
+    # Declaring lists of duplicated files with original and augmented names
+    source_paths = []
+    destination_paths = []
+
+    # Duplicating files until the number of less-occurring files is balanced
+    count = 0
+    while len(destination_paths) < long_dataset_count:
+        if len(destination_paths) + 2 * len(short_dataset) < long_dataset_count:
+            source_paths += short_dataset
+            destination_paths += [path.parent.joinpath(path.stem + "aug" + str(count) + ".png") for path in
+                                  short_dataset]
+            count += 1
+        else:
+            shuffle(short_dataset)
+            source_paths += short_dataset[:(long_dataset_count - len(short_dataset) - len(destination_paths))]
+            destination_paths += [path.parent.joinpath(path.stem + "aug" + str(count) + ".png") for path in
+                                  short_dataset[:(long_dataset_count - len(short_dataset) - len(destination_paths))]]
+            break
+
+    # Copying the final list of files
+    for source, destination in zip(source_paths, destination_paths):
+        shutil.copy(source, destination)
+
 def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
                   fft_len: int, fft_overlap: int, spectrogram_resolution: tuple, resampling_frequency: float,
                   **options):
@@ -236,7 +281,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
     # 3. Create training/validation datasets
     if ("options" in locals()) and ("training" in options.keys()) and ("validation" in options.keys()):
         destination_path_dataset = PATHS["PATH_DATASET"]\
-            .joinpath(f"{subdir_name}_t_{options['training']}_v_{options['validation']}")
+            .joinpath(f"{subdir_name}_t_{options['training']}_v_{options['validation']}_balanced_{balanced}")
         if options["training"] == options["validation"] and not destination_path_dataset.exists():
 
             source_files = list(PATHS["PATH_SPECTROGRAMS"].joinpath(options["training"]).joinpath(subdir_name).iterdir())
@@ -288,6 +333,10 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
         else:
             print(f"{destination_path_dataset.name} configuration already existing, skipping dataset creation...")
 
+        if balanced:
+            print("Balancing the training set...")
+            balance_by_duplication(destination_path_dataset)
+
     elif not destination_path_dataset.exists(): # non-specified
         destination_path_dataset = PATHS["PATH_DATASET"]\
             .joinpath(f"{subdir_name}_t_mixed_v_mixed")
@@ -316,6 +365,11 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
                     else:
                         shutil.copy(file, destination_path_dataset.joinpath(key).joinpath("nonhealthy")
                                     .joinpath(file.name))
+
+        if balanced:
+            print("Balancing the training set...")
+            balance_by_duplication(destination_path_dataset)
+
     else:
         print(f"{destination_path_dataset.name} configuration already existing, skipping dataset creation...")
 
