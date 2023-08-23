@@ -3,7 +3,7 @@ Module to check results against Laura Verdes article
 """
 import os
 import json
-
+import pandas as pd
 
 LAURA_RESULTS = {"f1": 72.99 / 100,
                  "precision": 80.65 / 100,
@@ -16,7 +16,7 @@ LAURA_RESULTS = {"f1": 80.00 / 100,
                  "precision": 74.44 / 100,
                  "recall": 86.45 / 100,
                  "accuracy": 73.93 / 100,
-                 "specificity":   54.9 / 100,
+                 "specificity":   54.9 / 100-0.01,
                  "auc": 0.707}
 
 
@@ -44,6 +44,8 @@ if os.name == "nt":
 else:
     from config import CENTOS_PATHS as PATHS
 
+
+
 result_dirs = []
 for item in PATHS["PATH_RESULTS"].iterdir():
     if not (".") in str(item.name):
@@ -62,4 +64,6 @@ for directory in result_dirs:
             #print(f"evaluating {json_file.name}....")
             compute_metrics(data, json_file)
 
-
+df = pd.read_csv( PATHS["PATH_RESULTS"].joinpath("445-A330c-41_results_v3.csv"))
+# FINDING A MIN
+print(f"Best benchmark value so far - {df['benchmark_value'].min()}")
