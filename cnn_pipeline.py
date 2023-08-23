@@ -24,6 +24,10 @@ import sklearn.metrics
 from utilities.converters import txt2wav, wav2spectrogram
 from utilities.octave_filter_bank import octave_filtering
 
+#os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+#tf.config.threading.set_inter_op_parallelism_threads(0)
+#tf.config.set_visible_devices([], 'GPU')
+
 # TODO implement YAML config file
 """
 Complete datapipeline for CNN classification.
@@ -342,7 +346,7 @@ def pipeline(configfile: Path):
     except AttributeError:
         losses = {"binary_crossentropy": tf.keras.losses.BinaryCrossentropy,
                   "focal_loss": tf.keras.losses.BinaryCrossentropy}
-    optimizers = {"adam": tf.keras.optimizers.Adam,
+    optimizers = {"adam": tf.keras.optimizers.legacy.Adam,
                   "sgd": tf.keras.optimizers.SGD,
                   "rmsprop": tf.keras.optimizers.RMSprop}
     transform = {"v1": transform_image,
@@ -357,7 +361,7 @@ def pipeline(configfile: Path):
     training_db = config["training_db"]
     validation_db = config["validation_db"]
     batch_size_exp = config["batch_size_exp"]
-    max_epochs = config["max_epochs"]
+    max_epochs = 5 #config["max_epochs"]
     learning_rate_exp = config["lr"]
     models = config["models"]
     if config["loss"] == "focal_loss":
@@ -474,7 +478,7 @@ def pipeline(configfile: Path):
                                     "training_set": f"{path.joinpath('training')}",
                                     "val_set": f"{path.joinpath('validation')}",
                                     "loss": f"{loss_function._name_scope}",
-                                    "optimizer":  f"{optimizer_cnn._name}",
+                                    "optimizer":  f"{optimizer_cnn.name}",
                                     "lr": f"{learning_rate_exp}",
                                     "epochs": f"{max_epochs}",
                                     "batch_size": f"{batch_size_exp}",
