@@ -13,10 +13,10 @@ LAURA_RESULTS = {"f1": 72.99 / 100,
                  "auc": 0.626}
 LAURA_RESULTS = {"f1": 80.00 / 100,
                  "precision": 74.44 / 100,
-                 "recall": 86.45 / 100,
-                 "accuracy": 73.93 / 100,
-                 "specificity":   54.9 / 100-0.01,
-                 "auc": 0.707}
+                 "recall": 86.45 / 100 - 0.0,
+                 "accuracy": 73.93 / 100 - 0.0,
+                 "specificity":   54.9 / 100 + 0.0,
+                 "auc": 0.707 - 0.0}
 
 def compute_metrics(history: dict, filename):
     for idx, tp in enumerate(history["val_TP"]):
