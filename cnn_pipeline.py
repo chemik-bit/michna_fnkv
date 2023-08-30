@@ -415,7 +415,7 @@ def pipeline(configfile: Path):
     learning_rate_exp = config["lr"]
     models = config["models"]
     if config["loss"] == "focal_loss":
-        loss_function = losses[config["loss"]](gamma=config["focal_loss_gamma"], alpha=0.25)
+        loss_function = losses[config["loss"]](gamma=config["focal_loss_gamma"], alpha=0.05)
     else:
         loss_function = losses[config["loss"]]()
     if "resampling_frequency" in config.keys():
@@ -470,7 +470,7 @@ def pipeline(configfile: Path):
                 # tensorboard stuff
                 history_file = str(uuid.uuid4())
 
-                tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=f"logs/selected/{history_file}")
+                tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=f"logs/balanced/{history_file}")
                 early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='loss',
                                                                            patience=70,
                                                                            verbose=1,
