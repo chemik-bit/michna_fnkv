@@ -7,6 +7,7 @@
 - ./spectrograms - folder with spectrogram images
 - ./data/database.db - db with patients information
 - ./data/voiced - voiced db
+- ./data/aggregate8000 - voiced + svd resampled to 8000Hz and trimmed to 0.5s
 - ./dev - random scripts (usualy functionality testing)
 - ./dev/obsolete - obsolete modules
 - ./dev/siamese_voiced - everything related to siamese network development,...
@@ -21,6 +22,6 @@
 
 ## Namespace
 - modules named "exp_*.py" are devoted to experimental testing of code functionality (see ./dev folder)
-- models: h_cnn001_002.py: h - created by Honza, cnn - convolutional neural network, 001 - architecture, 002 - hyperparameters version 
+- models: h_cnn001_002.py: h - created by Honza, cnn - convolutional neural network, 001 - architecture, 002 - hyperparameters version
 
 **KEEP THIS README UP TO DATE!**
