@@ -24,10 +24,6 @@ import sklearn.metrics
 from utilities.converters import txt2wav, wav2spectrogram
 from utilities.octave_filter_bank import octave_filtering
 
-#os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-#tf.config.threading.set_inter_op_parallelism_threads(0)
-#tf.config.set_visible_devices([], 'GPU')
-
 # TODO implement YAML config file
 """
 Complete datapipeline for CNN classification.
@@ -39,7 +35,7 @@ Complete datapipeline for CNN classification.
 5. Train CNN model and validate
 """
 
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_maitrix
 
 class Benchmark(tf.keras.metrics.Metric):
     """
@@ -55,6 +51,7 @@ class Benchmark(tf.keras.metrics.Metric):
         y_true = tf.cast(y_true, dtype=tf.bool)
         y_pred = tf.cast(y_pred, dtype=tf.bool)
 
+        #Myslim healthy=0 a sick=1
         false_positives = tf.reduce_sum(tf.cast(tf.logical_and(tf.logical_not(y_true), y_pred), dtype=tf.float32))
         false_negatives = tf.reduce_sum(tf.cast(tf.logical_and(y_true, tf.logical_not(y_pred)), dtype=tf.float32))
 
@@ -400,7 +397,7 @@ def pipeline(configfile: Path):
     except AttributeError:
         losses = {"binary_crossentropy": tf.keras.losses.BinaryCrossentropy,
                   "focal_loss": tf.keras.losses.BinaryCrossentropy}
-    optimizers = {"adam": tf.keras.optimizers.legacy.Adam,
+    optimizers = {"adam": tf.keras.optimizers.Adam,
                   "sgd": tf.keras.optimizers.SGD,
                   "rmsprop": tf.keras.optimizers.RMSprop}
     transform = {"v1": transform_image,
@@ -415,7 +412,7 @@ def pipeline(configfile: Path):
     training_db = config["training_db"]
     validation_db = config["validation_db"]
     batch_size_exp = config["batch_size_exp"]
-    max_epochs = 5 #config["max_epochs"]
+    max_epochs = config["max_epochs"]
     learning_rate_exp = config["lr"]
     models = config["models"]
     if config["loss"] == "focal_loss":
