@@ -1,7 +1,5 @@
 image_size:
   1: [60, 240]
-  3: [35, 350]
-  5: [20, 500]
 balances: [False]
 wav_chunks: [1]
 octaves: []
