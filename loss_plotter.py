@@ -10,11 +10,14 @@ else:
 
 
 result_dirs = []
-for item in PATHS["PATH_RESULTS"].iterdir():
+#for item in PATHS["PATH_RESULTS"].iterdir():
+print(PATHS["PATH_RESULTS"].parent.parent.parent.parent)
+for item in PATHS["PATH_RESULTS"].parent.parent.parent.parent.joinpath("./h_svk").iterdir():
     if not (".") in str(item.name):
         result_dirs.append(item)
 
 for directory in result_dirs:
+    print(directory)
     json_files = list(directory.glob("*.json"))
     print(f"Processing {directory}")
     directory.joinpath("imgs").mkdir(exist_ok=True)

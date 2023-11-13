@@ -396,8 +396,8 @@ def pipeline(configfile: Path):
                 history_file = str(uuid.uuid4())
 
                 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=f"logs/balanced/{history_file}")
-                early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='loss',
-                                                                           patience=10,
+                early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
+                                                                           patience=50,
                                                                            verbose=1,
                                                                            mode="min")
                 # callbacks = [TensorBoard(log_dir=log_dir,
