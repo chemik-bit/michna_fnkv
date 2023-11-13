@@ -453,7 +453,7 @@ def pipeline(configfile: Path):
                                     "training_set": f"{path.joinpath('training')}",
                                     "val_set": f"{path.joinpath('validation')}",
                                     "loss": f"{loss_function._name_scope}",
-                                    "optimizer":  f"{optimizer_cnn.name}",
+                                    "optimizer":  f"{optimizer_cnn._name}",
                                     "lr": f"{learning_rate_exp}",
                                     "epochs": f"{max_epochs}",
                                     "batch_size": f"{batch_size_exp}",
