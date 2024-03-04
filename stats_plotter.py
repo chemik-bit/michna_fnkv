@@ -8,9 +8,10 @@ if os.name == "nt":
 else:
     from config import CENTOS_PATHS as PATHS
 
-json_files = list(PATHS["PATH_RESULTS"].joinpath("h_conv_rectangular_noresample_fft25ms_overlap50_lr000001").glob("*.json"))
+#json_files = list(PATHS["PATH_RESULTS"].joinpath("h_conv_rectangular_noresample_fft25ms_overlap50_lr000001").glob("*.json"))
+json_files = list(PATHS["PATH_RESULTS"].parent.parent.parent.parent.joinpath("./h_svk").glob("*.json"))
 
-with open(PATHS["PATH_RESULTS"].joinpath("test_cfg","3a2b6db9-c048-4a17-88af-647c9fe88be7.json"), "r") as f:
+with open(PATHS["PATH_RESULTS"].parent.parent.parent.parent.joinpath("./h_svk").joinpath("28c3fe00-1239-4286-b4d2-1d4c890e2da0.json"), "r") as f:
     data = json.load(f)
     plt.figure()
     plt.plot(data["val_TP"], label="TP")

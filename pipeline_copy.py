@@ -24,7 +24,7 @@ import sklearn.metrics
 from utilities.converters import txt2wav, wav2spectrogram
 from utilities.octave_filter_bank import octave_filtering
 
-# TODO implement YAML config file
+
 """
 Complete datapipeline for CNN classification.
 1. Convert wavs to chunks
@@ -34,8 +34,6 @@ Complete datapipeline for CNN classification.
 4. Load training/validation datasets as tf.dataset.Data
 5. Train CNN model and validate
 """
-
-from sklearn.metrics import confusion_maitrix
 
 class Benchmark(tf.keras.metrics.Metric):
     """
@@ -48,7 +46,7 @@ class Benchmark(tf.keras.metrics.Metric):
 
     def update_state(self, y_true, y_pred, sample_weight=None):
         y_pred = tf.math.round(y_pred)  # Convert probabilities to binary predictions
-        y_true = tf.cast(y_true, dtype=tf.bool)
+        y_true = tf.cast(y_true, dtype=tf.bool)  #casts a tensor to a new type
         y_pred = tf.cast(y_pred, dtype=tf.bool)
 
         #Myslim healthy=0 a sick=1
@@ -64,84 +62,6 @@ class Benchmark(tf.keras.metrics.Metric):
     def reset_state(self):
         self.false_positives.assign(0)
         self.false_negatives.assign(0)
-
-def log_confusion_matrix(epoch, logs):
-    # Use the model to predict the values from the test_images.
-
-    test_pred_raw = model.predict(val) # val should be images
-
-    test_pred = np.argmax(test_pred_raw, axis=1)
-
-
-
-    # Calculate the confusion matrix using sklearn.metrics
-    y = np.concatenate([y for x, y in val], axis=0)
-
-    cm = sklearn.metrics.confusion_matrix(y, test_pred) #val should be labels
-    figure = plot_confusion_matrix(cm, class_names=["healthy", "nonhealthy"])
-
-    cm_image = plot_to_image(figure)
-
-    # Log the confusion matrix as an image summary.
-    with file_writer_cm.as_default():
-        tf.summary.image("Confusion Matrix", cm_image, step=epoch)
-
-def plot_to_image(figure):
-    """
-    Converts the matplotlib plot specified by 'figure' to a PNG image and
-    returns it. The supplied figure is closed and inaccessible after this call.
-    """
-
-    buf = io.BytesIO()
-
-    # Use plt.savefig to save the plot to a PNG in memory.
-    plt.savefig(buf, format='png')
-
-    # Closing the figure prevents it from being displayed directly inside
-    # the notebook.
-    plt.close(figure)
-    buf.seek(0)
-
-    # Use tf.image.decode_png to convert the PNG buffer
-    # to a TF image. Make sure you use 4 channels.
-    image = tf.image.decode_png(buf.getvalue(), channels=4)
-
-    # Use tf.expand_dims to add the batch dimension
-    image = tf.expand_dims(image, 0)
-
-    return image
-
-def plot_confusion_matrix(cm, class_names):
-    """
-    Returns a matplotlib figure containing the plotted confusion matrix.
-
-    Args:
-       cm (array, shape = [n, n]): a confusion matrix of integer classes
-       class_names (array, shape = [n]): String names of the integer classes
-    """
-
-    figure = plt.figure(figsize=(8, 8))
-    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
-    plt.title("Confusion matrix")
-    plt.colorbar()
-    tick_marks = np.arange(len(class_names))
-    plt.xticks(tick_marks, class_names, rotation=45)
-    plt.yticks(tick_marks, class_names)
-
-    # Normalize the confusion matrix.
-    cm = np.around(cm.astype('float') / cm.sum(axis=1)[:, np.newaxis], decimals=2)
-
-    # Use white text if squares are dark; otherwise black.
-    threshold = cm.max() / 2.
-
-    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-        color = "white" if cm[i, j] > threshold else "black"
-        plt.text(j, i, cm[i, j], horizontalalignment="center", color=color)
-
-    plt.tight_layout()
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
-    return figure
 
 def transform_image(image, label):
     """
@@ -233,6 +153,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
         from config import CENTOS_PATHS as PATHS
     inch_x = spectrogram_resolution[0] / 300  # 300 is value in plt.savefig..
     inch_y = spectrogram_resolution[1] / 300
+    #otazka - nechapu k čemu je
 
     if ("options" in locals()) and ("train_ratio" in options.keys()):
         train_to_val_ratio = options["train_ratio"] / (1 - options["train_ratio"])
@@ -251,6 +172,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
     # Check options
     if ("options" in locals()) and ("training" in options.keys()) and ("validation" in options.keys()):
         used_dbs = list({options["training"], options["validation"]})
+    #otazka - jakoze bychom zadali jine databaze na training a validaci, ale aby probihalo na obou??
         # Prepare wav files for mentioned databases in training and validation
     else:
         print("using voiced and svdadult databases")
@@ -259,7 +181,9 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
 
     for db in used_dbs:
         source_path = PATHS[f"PATH_{db.upper()}_RENAMED"]
+        
         destination_path_wav = PATHS["PATH_WAV"].joinpath(db).joinpath(str(wav_chunks))
+        
         print(f"Converting PATH_{db.upper()}_RENAMED to WAV...")
         for file in source_path.iterdir():
             sample_rate = int(file.stem.split("_")[-1])
@@ -472,8 +396,8 @@ def pipeline(configfile: Path):
                 history_file = str(uuid.uuid4())
 
                 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=f"logs/balanced/{history_file}")
-                early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='loss',
-                                                                           patience=70,
+                early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
+                                                                           patience=50,
                                                                            verbose=1,
                                                                            mode="min")
                 # callbacks = [TensorBoard(log_dir=log_dir,
@@ -529,7 +453,7 @@ def pipeline(configfile: Path):
                                     "training_set": f"{path.joinpath('training')}",
                                     "val_set": f"{path.joinpath('validation')}",
                                     "loss": f"{loss_function._name_scope}",
-                                    "optimizer":  f"{optimizer_cnn.name}",
+                                    "optimizer":  f"{optimizer_cnn._name}",
                                     "lr": f"{learning_rate_exp}",
                                     "epochs": f"{max_epochs}",
                                     "batch_size": f"{batch_size_exp}",
