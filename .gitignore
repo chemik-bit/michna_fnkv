@@ -3,3 +3,5 @@
 ./data/voiced/spectrograms/
 ./logs/
 **/.DS_Store
+./data/dataset/
+**/logs/**
