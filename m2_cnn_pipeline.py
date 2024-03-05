@@ -41,6 +41,9 @@ Complete datapipeline for CNN classification.
 
 from sklearn.metrics import confusion_matrix
 
+tf.config.threading.set_inter_op_parallelism_threads(1)
+tf.config.threading.set_intra_op_parallelism_threads(1)
+
 class Benchmark(tf.keras.metrics.Metric):
     """
     A custom metric that sums up the false positive and false negative results.
