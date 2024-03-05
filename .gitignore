@@ -3,5 +3,8 @@
 ./data/voiced/spectrograms/
 ./logs/
 **/.DS_Store
-./data/dataset/
+data/dataset/
+data/results/
+data/spectrograms/
 **/logs/**
+**__pycache__**
