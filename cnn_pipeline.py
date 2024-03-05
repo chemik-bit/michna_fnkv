@@ -35,7 +35,7 @@ Complete datapipeline for CNN classification.
 5. Train CNN model and validate
 """
 
-from sklearn.metrics import confusion_maitrix
+from sklearn.metrics import confusion_matrix
 
 class Benchmark(tf.keras.metrics.Metric):
     """
