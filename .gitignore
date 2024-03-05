@@ -2,3 +2,4 @@
 ./data/sound_files
 ./data/voiced/spectrograms/
 ./logs/
+**/.DS_Store
