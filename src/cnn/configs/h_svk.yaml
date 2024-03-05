@@ -1,0 +1,40 @@
+image_size:
+  1: [60, 240]
+balances: [False]
+wav_chunks: [1]
+octaves: []
+fft_lens: [1250]
+fft_overlaps: [625]
+training_db: svdadult
+validation_db: svdadult
+batch_size_exp: 32
+max_epochs: 500
+lr: 0.0001
+transform: v1
+models: [
+        ###filters
+        'src.cnn.models.2conv_2x4_best.cnn_2conv2x4_filters_80_dropout_55_maxpool2x2_strides2x2_gap', 
+        'src.cnn.models.2conv_2x4_best.cnn_2conv2x4_filters_90_dropout_55_maxpool2x2_strides2x2_gap', 
+        'src.cnn.models.2conv_2x4_best.cnn_2conv2x4_filters_100_dropout_55_maxpool2x2_strides2x2_gap', 
+        'src.cnn.models.2conv_2x4_best.cnn_2conv2x4_filters_110_dropout_55_maxpool2x2_strides2x2_gap', 
+        'src.cnn.models.2conv_2x4_best.cnn_2conv2x4_filters_120_dropout_55_maxpool2x2_strides2x2_gap', 
+        'src.cnn.models.2conv_2x4_best.cnn_2conv2x4_filters_130_dropout_55_maxpool2x2_strides2x2_gap', 
+        'src.cnn.models.2conv_2x4_best.cnn_2conv2x4_filters_140_dropout_55_maxpool2x2_strides2x2_gap', 
+        ### dropout
+        'src.cnn.models.2conv_2x4_best.cnn_2conv2x4_filters_110_dropout_35_maxpool2x2_strides2x2_gap', 
+        'src.cnn.models.2conv_2x4_best.cnn_2conv2x4_filters_110_dropout_45_maxpool2x2_strides2x2_gap',
+        'src.cnn.models.2conv_2x4_best.cnn_2conv2x4_filters_110_dropout_55_maxpool2x2_strides2x2_gap', 
+        'src.cnn.models.2conv_2x4_best.cnn_2conv2x4_filters_110_dropout_65_maxpool2x2_strides2x2_gap', 
+        'src.cnn.models.2conv_2x4_best.cnn_2conv2x4_filters_110_dropout_75_maxpool2x2_strides2x2_gap', 
+        ### maxpool
+        'src.cnn.models.2conv_2x4_best.cnn_2conv2x4_filters_110_dropout_55_maxpool1x2_strides2x2_gap', 
+        'src.cnn.models.2conv_2x4_best.cnn_2conv2x4_filters_110_dropout_55_maxpool1x4_strides2x2_gap',
+        'src.cnn.models.2conv_2x4_best.cnn_2conv2x4_filters_110_dropout_55_maxpool2x2_strides2x2_gap', 
+        'src.cnn.models.2conv_2x4_best.cnn_2conv2x4_filters_110_dropout_55_maxpool2x4_strides2x2_gap',
+        ### strides
+        'src.cnn.models.2conv_2x4_best.cnn_2conv2x4_filters_110_dropout_55_maxpool2x2_strides1x1_gap', 
+        'src.cnn.models.2conv_2x4_best.cnn_2conv2x4_filters_110_dropout_55_maxpool2x2_strides2x2_gap'
+        ]
+loss: focal_loss
+optimizer: adam
+focal_loss_gamma: 5

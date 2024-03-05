@@ -35,7 +35,7 @@ Complete datapipeline for CNN classification.
 5. Train CNN model and validate
 """
 
-from sklearn.metrics import confusion_maitrix
+from sklearn.metrics import confusion_matrix
 
 class Benchmark(tf.keras.metrics.Metric):
     """
@@ -51,7 +51,6 @@ class Benchmark(tf.keras.metrics.Metric):
         y_true = tf.cast(y_true, dtype=tf.bool)
         y_pred = tf.cast(y_pred, dtype=tf.bool)
 
-        #Myslim healthy=0 a sick=1
         false_positives = tf.reduce_sum(tf.cast(tf.logical_and(tf.logical_not(y_true), y_pred), dtype=tf.float32))
         false_negatives = tf.reduce_sum(tf.cast(tf.logical_and(y_true, tf.logical_not(y_pred)), dtype=tf.float32))
 
@@ -529,7 +528,7 @@ def pipeline(configfile: Path):
                                     "training_set": f"{path.joinpath('training')}",
                                     "val_set": f"{path.joinpath('validation')}",
                                     "loss": f"{loss_function._name_scope}",
-                                    "optimizer":  f"{optimizer_cnn.name}",
+                                    "optimizer":  f"{optimizer_cnn._name}",
                                     "lr": f"{learning_rate_exp}",
                                     "epochs": f"{max_epochs}",
                                     "batch_size": f"{batch_size_exp}",
