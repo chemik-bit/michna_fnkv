@@ -1,5 +1,5 @@
 image_size:
-  1: [60, 240]
+ 1: [60, 240]
 balances: [False]
 wav_chunks: [1]
 octaves: []
@@ -7,7 +7,7 @@ fft_lens: [1250]
 fft_overlaps: [625]
 training_db: svdadult
 validation_db: svdadult
-batch_size_exp: 8
+batch_size_exp: 16
 max_epochs: 10
 lr: 0.0001
 transform: v1
