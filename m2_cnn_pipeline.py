@@ -347,11 +347,12 @@ def pipeline(configfile: Path):
     max_epochs = config["max_epochs"]
     learning_rate_exp = config["lr"]
     models = config["models"]
-    
+
     if config["loss"] == "focal_loss":
         loss_function = losses[config["loss"]](gamma=config["focal_loss_gamma"], alpha=0.25)
     else:
         loss_function = losses[config["loss"]]()
+
     if "resampling_frequency" in config.keys():
         resampling_frequency = config["resampling_frequency"]
     else:
@@ -438,6 +439,7 @@ def pipeline(configfile: Path):
                     decay_steps=steps_per_epoch,
                     decay_rate=learning_rate_decay_factor,
                     staircase=True)
+
                 optimizer_cnn = optimizers[config["optimizer"]](learning_rate=lr_schedule)
 
                 model.compile(loss=loss_function, optimizer=optimizer_cnn, metrics=metrics_list)
@@ -447,7 +449,8 @@ def pipeline(configfile: Path):
                 history = model.fit(train, validation_data=val,
                                     epochs=max_epochs,
                                     batch_size=batch_size_exp,
-                                    callbacks=[tensorboard_callback, early_stopping_callback]).history
+                                    callbacks=[tensorboard_callback, early_stopping_callback], 
+                                    verbose = 1).history
                 healthy_validation = len(list(path.joinpath("validation", "healthy").glob("*")))
                 nonhealthy_validation = len(list(path.joinpath("validation", "nonhealthy").glob("*")))
                 print(f"history keys {history.keys()}")
@@ -517,11 +520,12 @@ def pipeline(configfile: Path):
                 # print(history)
                 # print(history.keys())
 
+def main(configfile_path):
+    configfile = Path(configfile_path)
+    pipeline(configfile)
+
 if __name__ == "__main__":
-
-
-
     parser = argparse.ArgumentParser()
-    parser.add_argument("--configfile", type=Path, required=True)
+    parser.add_argument("--configfile", type=str, required=True)  # Notice type is changed to str
     args = parser.parse_args()
-    pipeline(args.configfile)
+    main(args.configfile)
