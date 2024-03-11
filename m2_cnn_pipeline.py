@@ -307,7 +307,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
     return destination_path_dataset
 
 
-def pipeline(configfile: Path):
+def pipeline(configfile: Path, generation: int, ga: bool = False):
 
     if os.name == "nt":
         from config import WINDOWS_PATHS as PATHS
@@ -347,6 +347,8 @@ def pipeline(configfile: Path):
     max_epochs = config["max_epochs"]
     learning_rate_exp = config["lr"]
     models = config["models"]
+    #print("models\n\n\n", models)
+    binaries = config.get("binary", "")
 
     if config["loss"] == "focal_loss":
         loss_function = losses[config["loss"]](gamma=config["focal_loss_gamma"], alpha=0.25)
@@ -360,172 +362,185 @@ def pipeline(configfile: Path):
     # transform_function = transform[config["transform"]]()
     # TODO handle lr schedule and different params for optimizers
 
+    for individual_index, eval_model in enumerate(models):
+        try:
+            classifier = importlib.import_module(eval_model)
+            print("classifier", classifier)
+            for fft_len, fft_overlap, balance, chunk, image_size in itertools.product(fft_lens, fft_overlaps, balances, chunks, image_sizes):
+                print(f"Entering data_pipeline.... {image_size}")
+                
+                if fft_overlap >= fft_len:
+                    print(f"window length of {fft_len} is smaller or equal to the overlap of {fft_overlap}. "
+                          f"Skipping this setup.")
+                else:
+                    print("Entering data_pipeline....")
+                    path = data_pipeline(chunk, [], balance, fft_len, fft_overlap, image_size,
+                                         training=training_db, validation=validation_db,
+                                         resampling_frequency=resampling_frequency)
+                    print("Exited data_pipeline....")
+                    print("Loading datasets....")
+                    train = tf.keras.preprocessing.image_dataset_from_directory(
+                        path.joinpath("training"),
 
-    for eval_model in models:
-        classifier = importlib.import_module(eval_model)
-        for fft_len, fft_overlap, balance, chunk, image_size in itertools.product(fft_lens, fft_overlaps, balances, chunks, image_sizes):
-            print(f"Entering data_pipeline.... {image_size}")
-            if fft_overlap >= fft_len:
-                print(f"window length of {fft_len} is smaller or equal to the overlap of {fft_overlap}. "
-                      f"Skipping this setup.")
-            else:
-                path = data_pipeline(chunk, [], balance, fft_len, fft_overlap, image_size,
-                                     training=training_db, validation=validation_db,
-                                     resampling_frequency=resampling_frequency)
-                # path = data_pipeline(chunk, [3, 4, 5, 6], balance, fft_len, fft_len // 2, image_size)
-                print("Exited data_pipeline....")
-                print("Loading datasets....")
-                train = tf.keras.preprocessing.image_dataset_from_directory(
-                    path.joinpath("training"),
+                        image_size=image_size,
+                        batch_size=batch_size_exp)
 
-                    image_size=image_size,
-                    batch_size=batch_size_exp)
+                    print("Train set loaded")
+                    val = tf.keras.preprocessing.image_dataset_from_directory(
+                        path.joinpath("validation"),
+                        image_size=image_size)
+                    print("Validation set loaded")
+                    train = train.map(transform[config["transform"]], num_parallel_calls=tf.data.AUTOTUNE)
+                    val = val.map(transform[config["transform"]], num_parallel_calls=tf.data.AUTOTUNE)
+                    print("Sets transformed...")
+                    print(f"Model.. {classifier.__file__}")
+                    model = classifier.create_model(image_size)
+                    log_dir = "logs"
+                    history_file = str(uuid.uuid4())
 
-                print("Train set loaded")
-                val = tf.keras.preprocessing.image_dataset_from_directory(
-                    path.joinpath("validation"),
-                    image_size=image_size)
-                print("Validation set loaded")
-                #train = train.map(transform_function, num_parallel_calls=tf.data.AUTOTUNE)
-                #val = val.map(transform_function, num_parallel_calls=tf.data.AUTOTUNE)
-                train = train.map(transform[config["transform"]], num_parallel_calls=tf.data.AUTOTUNE)
-                val = val.map(transform[config["transform"]], num_parallel_calls=tf.data.AUTOTUNE)
-                print("Sets transformed...")
-                print(f"Model.. {classifier.__file__}")
-                model = classifier.create_model(image_size)
-                #loss_function = tf.keras.losses.BinaryCrossentropy()
-                #focal_loss = tf.keras.losses.BinaryFocalCrossentropy(apply_class_balancing=False)
-                # lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-                #     initial_learning_rate=1e-2,
-                #     decay_steps=1000000,
-                #     decay_rate=0.99)
+                    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=f"logs/selected/{history_file}")
+                    early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy',
+                                                                               patience=20,
+                                                                               verbose=1 )#,
+                                                                               #mode="min")
+                    metrics_list = ["accuracy",
+                                    benchmark_metric,
+                                    tf.keras.metrics.TruePositives(name="TP"),
+                                    tf.keras.metrics.TrueNegatives(name="TN"),
+                                    tf.keras.metrics.FalsePositives(name="FP"),
+                                    tf.keras.metrics.FalseNegatives(name="FN"),
+                                    tf.keras.metrics.Precision(name="Precision"),
+                                    tf.keras.metrics.Recall(name="Recall"),
+                                    tf.keras.metrics.AUC(name="AUC")]
+                    #
+                    initial_learning_rate = learning_rate_exp
+                    final_learning_rate = learning_rate_exp / 1000
+                    learning_rate_decay_factor = (final_learning_rate / initial_learning_rate) ** (1 / max_epochs)
+                    steps_per_epoch = int(len(list(train)) / batch_size_exp)
 
-                #optimizer_cnn = tf.keras.optimizers.SGD(lr=0.01)
-                log_dir = "logs"
-                # tensorboard stuff
-                history_file = str(uuid.uuid4())
+                    lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+                        initial_learning_rate=initial_learning_rate,
+                        decay_steps=steps_per_epoch,
+                        decay_rate=learning_rate_decay_factor,
+                        staircase=True)
+                    #
+                    lr_schedule = learning_rate_exp
+                    optimizer_cnn = optimizers[config["optimizer"]](learning_rate=lr_schedule)
 
-                tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=f"logs/selected/{history_file}")
-                early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='loss',
-                                                                           patience=70,
-                                                                           verbose=1,
-                                                                           mode="min")
-                # callbacks = [TensorBoard(log_dir=log_dir,
-                #                          histogram_freq=1,
-                #                          write_graph=True,
-                #                          write_images=False,
-                #                          update_freq='epoch',
-                #                          profile_batch=2,
-                #                          embeddings_freq=1)]
-                # file_writer_cm = tf.summary.create_file_writer(log_dir + '/cm')
-                # cm_callback = tf.keras.callbacks.LambdaCallback(on_epoch_end=log_confusion_matrix)
-                metrics_list = ["accuracy",
-                                benchmark_metric,
-                                tf.keras.metrics.TruePositives(name="TP"),
-                                tf.keras.metrics.TrueNegatives(name="TN"),
-                                tf.keras.metrics.FalsePositives(name="FP"),
-                                tf.keras.metrics.FalseNegatives(name="FN"),
-                                tf.keras.metrics.Precision(name="Precision"),
-                                tf.keras.metrics.Recall(name="Recall"),
-                                tf.keras.metrics.AUC(name="AUC")]
+                    model.compile(loss=loss_function, optimizer=optimizer_cnn, metrics=metrics_list)
+                    model.summary()
 
-                initial_learning_rate = learning_rate_exp
-                final_learning_rate = learning_rate_exp / 1000
-                learning_rate_decay_factor = (final_learning_rate / initial_learning_rate) ** (1 / max_epochs)
-                steps_per_epoch = int(len(list(train)) / batch_size_exp)
+                    history = model.fit(train, validation_data=val,
+                                        epochs=max_epochs,
+                                        batch_size=batch_size_exp,
+                                        callbacks=[tensorboard_callback, early_stopping_callback], 
+                                        verbose = 1).history
+                    
+                    healthy_validation = len(list(path.joinpath("validation", "healthy").glob("*")))
+                    nonhealthy_validation = len(list(path.joinpath("validation", "nonhealthy").glob("*")))
+                    print(f"history keys {history.keys()}")
 
-                lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-                    initial_learning_rate=initial_learning_rate,
-                    decay_steps=steps_per_epoch,
-                    decay_rate=learning_rate_decay_factor,
-                    staircase=True)
 
-                optimizer_cnn = optimizers[config["optimizer"]](learning_rate=lr_schedule)
+                    results_to_write = {"model": f"{classifier.__name__}",
+                                        "benchmark_value": 9999999,
+                                        "TP": 0,
+                                        "TN": 0,
+                                        "FP": 0,
+                                        "FN": 0,
+                                        "AUC": 0,
+                                        "training_set": f"{path.joinpath('training')}",
+                                        "val_set": f"{path.joinpath('validation')}",
+                                        "loss": f"{loss_function._name_scope}",
+                                        "optimizer":  f"{optimizer_cnn._name}",
+                                        "lr": f"{learning_rate_exp}",
+                                        "epochs": f"{max_epochs}",
+                                        "batch_size": f"{batch_size_exp}",
+                                        "balance":  f"{balance}",
+                                        "fft_len":  f"{fft_len}",
+                                        "fft_overlap": f"{fft_overlap}",
+                                        "chunks": f"{chunk}",
+                                        "image_size": f"{image_size}",
+                                        "val_ratio": f"{nonhealthy_validation / (nonhealthy_validation + healthy_validation)}",
+                                        "resampling": f"{resampling_frequency}"}
+                    
+                    for idx, fp in enumerate(history["val_FP"]):
+                        if history["val_FN"][idx] + fp < results_to_write["benchmark_value"]:
+                            results_to_write["benchmark_value"] =  history["val_FN"][idx] + fp
+                            results_to_write["BENCHMARK_AUC"] = history["val_AUC"][idx]
+                            results_to_write["TP"] = history["val_TP"][idx]
+                            results_to_write["TN"] = history["val_TN"][idx]
+                            results_to_write["FP"] = fp
+                            results_to_write["FN"] = history["val_FN"][idx]
 
-                model.compile(loss=loss_function, optimizer=optimizer_cnn, metrics=metrics_list)
-                model.summary()
-                # Display the model summary.
+                    results_to_write["VAL_AUC_MAX"] = max(history["val_AUC"])
+                    results_to_write["AUC_MAX"] = max(history["AUC"])
+                    results_to_write["history_file"] = f"{history_file}.json"
+                    results_to_write["configfile"] = configfile.name
 
-                history = model.fit(train, validation_data=val,
-                                    epochs=max_epochs,
-                                    batch_size=batch_size_exp,
-                                    callbacks=[tensorboard_callback, early_stopping_callback], 
-                                    verbose = 1).history
-                healthy_validation = len(list(path.joinpath("validation", "healthy").glob("*")))
-                nonhealthy_validation = len(list(path.joinpath("validation", "nonhealthy").glob("*")))
-                print(f"history keys {history.keys()}")
+                    print("part 1")
+                    with open(PATHS["PATH_RESULTS"].joinpath(socket.gethostname() + "_results_v3.csv"), "a", newline="") as csvfile:
+                        fieldnames = [key for key in results_to_write.keys()]
+                        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                        if csvfile.tell() == 0:
+                            writer.writeheader()
+                        writer.writerow(results_to_write)
 
-                results_to_write = {"model": f"{classifier.__name__}",
-                                    "benchmark_value": 9999999,
-                                    "TP": 0,
-                                    "TN": 0,
-                                    "FP": 0,
-                                    "FN": 0,
-                                    "AUC": 0,
-                                    "training_set": f"{path.joinpath('training')}",
-                                    "val_set": f"{path.joinpath('validation')}",
-                                    "loss": f"{loss_function._name_scope}",
-                                    "optimizer":  f"{optimizer_cnn._name}",
-                                    "lr": f"{learning_rate_exp}",
-                                    "epochs": f"{max_epochs}",
-                                    "batch_size": f"{batch_size_exp}",
-                                    "balance":  f"{balance}",
-                                    "fft_len":  f"{fft_len}",
-                                    "fft_overlap": f"{fft_overlap}",
-                                    "chunks": f"{chunk}",
-                                    "image_size": f"{image_size}",
-                                    "val_ratio": f"{nonhealthy_validation / (nonhealthy_validation + healthy_validation)}",
-                                    "resampling": f"{resampling_frequency}"}
-                # print(history)}
+                    # Concatenate configfile.stem and "_original" to form a single directory name
+                    directory_name = f"{configfile.stem}_original"
+                    # Use joinpath to append this new directory name to PATH_RESULTS
+                    PATHS["PATH_RESULTS"].joinpath(directory_name).mkdir(exist_ok=True)
+                    print("part 2")
+                    with open(PATHS["PATH_RESULTS"].joinpath(directory_name, history_file + ".json"), "w") as fp:
+                        json.dump(history, fp)
 
-                for idx, fp in enumerate(history["val_FP"]):
-                    if history["val_FN"][idx] + fp < results_to_write["benchmark_value"]:
-                        results_to_write["benchmark_value"] =  history["val_FN"][idx] + fp
-                        results_to_write["BENCHMARK_AUC"] = history["val_AUC"][idx]
-                        results_to_write["TP"] = history["val_TP"][idx]
-                        results_to_write["TN"] = history["val_TN"][idx]
-                        results_to_write["FP"] = fp
-                        results_to_write["FN"] = history["val_FN"][idx]
+                    if ga:
+                        print("part 3")
+                        binary = binaries[individual_index]
+                        GA_history = {}
+                        GA_history["val_acc"] = max(history["val_accuracy"])
+                        GA_history["binary"] = binary
+                        print("part 3")
+                        PATHS["PATH_RESULTS"].joinpath("ga", str(generation+1)).mkdir(parents=True, exist_ok=True)
+                        print("part 4")
+                        with open(PATHS["PATH_RESULTS"].joinpath("ga", str(generation+1), str(individual_index+1) + ".json"), "a") as fp:
+                            json.dump(GA_history, fp)
+                        print("part 5")
+                        print("generation", f"{generation+1}")
+                        print("individual_index", f"{individual_index+1}")
+                        #GA results saving
+                        binary = binaries[individual_index]
+                        GA_history = {}
+                        GA_history["val_acc"] = max(history["val_accuracy"])
+                        GA_history["binary"] = binary
+                        print("part 3")
+                        
+                        PATHS["PATH_RESULTS"].joinpath("ga", str(generation+1)).mkdir(parents=True, exist_ok=True)
+                        
+                        print("part 4")
+                        with open(PATHS["PATH_RESULTS"].joinpath("ga", str(generation+1), str(individual_index+1) + ".json"), "a") as fp:
+                            json.dump(GA_history, fp)
+                        print("part 5")
 
-                results_to_write["VAL_AUC_MAX"] = max(history["val_AUC"])
-                results_to_write["AUC_MAX"] = max(history["AUC"])
-                results_to_write["history_file"] = f"{history_file}.json"
-                results_to_write["configfile"] = configfile.name
+        except Exception as e:
+            print(f"Error training model {eval_model}: {e}")
+            if ga:
+                PATHS["PATH_RESULTS"].joinpath("ga", str(generation+1)).mkdir(parents=True, exist_ok=True)
+                GA_history = {}
+                GA_history["val_acc"] = 0
+                GA_history["binary"] = binaries[individual_index]
+                with open(PATHS["PATH_RESULTS"].joinpath("ga", str(generation+1), str(individual_index+1) + ".json"), "a") as fp:
+                    json.dump(GA_history, fp)
 
-                with open(PATHS["PATH_RESULTS"].joinpath(socket.gethostname() + "_results_v3.csv"), "a", newline="") as csvfile:
-                    fieldnames = [key for key in results_to_write.keys()]
-                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                    if csvfile.tell() == 0:
-                        writer.writeheader()
-                    writer.writerow(results_to_write)
+                continue
 
-                PATHS["PATH_RESULTS"].joinpath(configfile.stem).mkdir(exist_ok=True)
-
-                with open(PATHS["PATH_RESULTS"].joinpath(configfile.stem, history_file + ".json"), "w") as fp:
-                    json.dump(history, fp)
-                # with open("results.txt", "a") as result_file:
-                #     result_file.write(f"val auc max: {max(history['val_AUC'])}, auc max: {max(history['AUC'])},"
-                #                       f"benchmark_value: {benchmark_value} - AUC {benchmark_auc} - val TP {benchmark_tp} - val TN {benchmark_tn} - val FP {benchmark_fp} - val FN {benchmark_fn} "
-                #                       f"{classifier.__name__},"
-                #                       f"training set: {path.joinpath('training')},"
-                #                       f"val set: {path.joinpath('validation')},"
-                #                       f"{loss_function._name_scope},"
-                #                       f"{optimizer_cnn._name},"
-                #                       f"lr: {learning_rate_exp},"
-                #                       f" balance: {balance},"
-                #                       f" fft_len: {fft_len},"
-                #                       f" chunks: {chunk},"
-                #                       f" image_size: {image_size},"
-                #                       f"val_ratio: {nonhealthy_validation / (nonhealthy_validation + healthy_validation)}\n")
-                # print(history)
-                # print(history.keys())
-
-def main(configfile_path):
+def main(configfile_path, generation, ga=False):
     configfile = Path(configfile_path)
-    pipeline(configfile)
+    pipeline(configfile, generation, ga)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--configfile", type=str, required=True)  # Notice type is changed to str
     args = parser.parse_args()
-    main(args.configfile)
+    main(args.configfile, 0)
+
