@@ -22,6 +22,7 @@ def create_model(input_size):
     x.add(layers.MaxPooling2D(pool_size=(1, 1), strides=(2, 2)))
     x.add(layers.BatchNormalization())
     x.add(layers.GlobalAveragePooling2D())
-    x.add(layers.Dense(353, activation='relu'))
+    x.add(layers.Dense(353, activation='tanh'))
+    x.add(layers.Dropout(0.2))
     x.add(layers.Dense(1, activation="sigmoid"))
     return x

@@ -9,11 +9,12 @@ clear_directories()
 
 for generation in range(num_generations):
     
+    
     print("GENERACE NYNI: ", generation+1, "\n\n\n\n")
     if generation == 0:
-        binary_numbers_list = generate_individual(3, 136)
+        binary_numbers_list = generate_individual(3, 207)
     else:
-        new_binary_numbers_list = generate_individual(5, 136)
+        new_binary_numbers_list = generate_individual(5, 207)
         binary_numbers_list = binary_numbers_list + new_binary_numbers_list
 
 
@@ -24,11 +25,13 @@ for generation in range(num_generations):
     for i, individual in enumerate(binary_numbers_list):
         model_creation(str(individual), model_index = i+1, generation = generation)
         print(f"Model {i+1} created")
-
-    generation_runfile_creator(binary_numbers_list, generation = generation)
     
-    yaml_file = Path(__file__).parent.joinpath(f'./src/cnn/configs/ga/{generation+1}.yaml')
-    m2.main(yaml_file, generation, ga = True)
+    generation_runfile_creator(binary_numbers_list, generation = generation)
+    for individual in range(len(binary_numbers_list)):
+        yaml_file = Path(__file__).parent.joinpath(f'./src/cnn/configs/ga/{generation+1}/config_{individual+1}.yaml')
+        print("YAML FILE: ", yaml_file)
+        m2.main(yaml_file, generation, individual, ga = True)
+    
     
     
     selected_individuals, selected_indexes = read_and_sort_results(generation, 5)

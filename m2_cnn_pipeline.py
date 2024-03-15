@@ -307,7 +307,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
     return destination_path_dataset
 
 
-def pipeline(configfile: Path, generation: int, ga: bool = False):
+def pipeline(configfile: Path, generation: int, individual, ga: bool = False):
 
     if os.name == "nt":
         from config import WINDOWS_PATHS as PATHS
@@ -346,10 +346,11 @@ def pipeline(configfile: Path, generation: int, ga: bool = False):
     validation_db = config["validation_db"]
     batch_size_exp = config["batch_size_exp"]
     max_epochs = config["max_epochs"]
-    learning_rate_exp = config["lr"]
+    learning_rate_exp = float(config["lr"])
     models = config["models"]
     #print("models\n\n\n", models)
-    binaries = config.get("binary", "")
+    binary = config["binary"]
+    print("binary", binary)
 
     if config["loss"] == "focal_loss":
         loss_function = losses[config["loss"]](gamma=config["focal_loss_gamma"], alpha=0.25)
@@ -364,7 +365,7 @@ def pipeline(configfile: Path, generation: int, ga: bool = False):
     # TODO handle lr schedule and different params for optimizers
 
     for individual_index, eval_model in enumerate(models):
-        try:
+        if True:
             classifier = importlib.import_module(eval_model)
             print("classifier", classifier)
             for fft_len, fft_overlap, balance, chunk, image_size in itertools.product(fft_lens, fft_overlaps, balances, chunks, image_sizes):
@@ -452,7 +453,7 @@ def pipeline(configfile: Path, generation: int, ga: bool = False):
                                         "training_set": f"{path.joinpath('training')}",
                                         "val_set": f"{path.joinpath('validation')}",
                                         "loss": f"{loss_function._name_scope}",
-                                        "optimizer":  f"{optimizer_cnn._name}",
+                                        "optimizer":  optimizer_cnn.get_config()["name"],
                                         "lr": f"{learning_rate_exp}",
                                         "epochs": f"{max_epochs}",
                                         "batch_size": f"{batch_size_exp}",
@@ -496,39 +497,40 @@ def pipeline(configfile: Path, generation: int, ga: bool = False):
 
                     if ga:
                         #print("part 3")
-                        binary = binaries[individual_index]
                         GA_history = {}
                         GA_history["val_acc"] = max(history["val_accuracy"])
                         GA_history["binary"] = binary
+                        print("GA_binary", binary)
                         #print("part 3")
                         PATHS["PATH_RESULTS"].joinpath("ga", str(generation+1)).mkdir(parents=True, exist_ok=True)
                         #print("part 4")
-                        with open(PATHS["PATH_RESULTS"].joinpath("ga", str(generation+1), str(individual_index+1) + ".json"), "a") as fp:
+                        with open(PATHS["PATH_RESULTS"].joinpath("ga", str(generation+1), str(individual+1) + ".json"), "a") as fp:
                             json.dump(GA_history, fp)
                         #print("part 5")
                         print("generation", f"{generation+1}")
-                        print("individual_index", f"{individual_index+1}")
-
+                        print("individual_index", f"{individual+1}")
+        """
         except Exception as e:
             print(f"Error training model {eval_model}: {e}")
             if ga:
                 PATHS["PATH_RESULTS"].joinpath("ga", str(generation+1)).mkdir(parents=True, exist_ok=True)
                 GA_history = {}
                 GA_history["val_acc"] = 0
-                GA_history["binary"] = binaries[individual_index]
-                with open(PATHS["PATH_RESULTS"].joinpath("ga", str(generation+1), str(individual_index+1) + ".json"), "a") as fp:
+                GA_history["binary"] = binary
+                with open(PATHS["PATH_RESULTS"].joinpath("ga", str(generation+1), str(individual+1) + ".json"), "a") as fp:
                     json.dump(GA_history, fp)
 
                 continue
+        """
 
-def main(configfile_path, generation, ga=False):
+def main(configfile_path, generation, individual, ga=False):
     configfile = Path(configfile_path)
-    pipeline(configfile, generation, ga)
+    pipeline(configfile, generation, individual, ga)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--configfile", type=str, required=True)  # Notice type is changed to str
     args = parser.parse_args()
-    main(args.configfile, 0)
+    main(args.configfile, 0, 0)
 
