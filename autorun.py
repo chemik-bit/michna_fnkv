@@ -10,10 +10,10 @@ def run_model(config_path):
     end_time = time.time()
     return end_time - start_time
 
-first_time = run_model('src/cnn/configs/h_zkouska3.yaml')
+#first_time = run_model('src/cnn/configs/h_zkouska3.yaml')
 second_time = run_model('src/cnn/configs/h_zkouska2.yaml')
 third_time = run_model('src/cnn/configs/h_zkouska3.yaml')  # Assuming you want to try this again or it's a different config
 
-print(f"Execution time for first model: {first_time} seconds")
+#print(f"Execution time for first model: {first_time} seconds")
 print(f"Execution time for second model: {second_time} seconds")
 print(f"Execution time for third model: {third_time} seconds")

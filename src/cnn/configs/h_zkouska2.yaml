@@ -17,3 +17,4 @@ models: [
 loss: focal_loss
 optimizer: adam
 focal_loss_gamma: 5
+binary: 1001
