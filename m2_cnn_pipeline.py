@@ -329,7 +329,8 @@ def pipeline(configfile: Path, generation: int, ga: bool = False):
                   "focal_loss": tf.keras.losses.BinaryCrossentropy}
     optimizers = {"adam": tf.keras.optimizers.legacy.Adam,
                   "sgd": tf.keras.optimizers.SGD,
-                  "rmsprop": tf.keras.optimizers.RMSprop}
+                  "rmsprop": tf.keras.optimizers.RMSprop,
+                  "adagrad": tf.keras.optimizers.Adagrad}
     transform = {"v1": transform_image,
                 "v2": transform_image2}
     
@@ -477,7 +478,7 @@ def pipeline(configfile: Path, generation: int, ga: bool = False):
                     results_to_write["history_file"] = f"{history_file}.json"
                     results_to_write["configfile"] = configfile.name
 
-                    print("part 1")
+                    #print("part 1")
                     with open(PATHS["PATH_RESULTS"].joinpath(socket.gethostname() + "_results_v3.csv"), "a", newline="") as csvfile:
                         fieldnames = [key for key in results_to_write.keys()]
                         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -489,37 +490,24 @@ def pipeline(configfile: Path, generation: int, ga: bool = False):
                     directory_name = f"{configfile.stem}_original"
                     # Use joinpath to append this new directory name to PATH_RESULTS
                     PATHS["PATH_RESULTS"].joinpath(directory_name).mkdir(exist_ok=True)
-                    print("part 2")
+                    #print("part 2")
                     with open(PATHS["PATH_RESULTS"].joinpath(directory_name, history_file + ".json"), "w") as fp:
                         json.dump(history, fp)
 
                     if ga:
-                        print("part 3")
+                        #print("part 3")
                         binary = binaries[individual_index]
                         GA_history = {}
                         GA_history["val_acc"] = max(history["val_accuracy"])
                         GA_history["binary"] = binary
-                        print("part 3")
+                        #print("part 3")
                         PATHS["PATH_RESULTS"].joinpath("ga", str(generation+1)).mkdir(parents=True, exist_ok=True)
-                        print("part 4")
+                        #print("part 4")
                         with open(PATHS["PATH_RESULTS"].joinpath("ga", str(generation+1), str(individual_index+1) + ".json"), "a") as fp:
                             json.dump(GA_history, fp)
-                        print("part 5")
+                        #print("part 5")
                         print("generation", f"{generation+1}")
                         print("individual_index", f"{individual_index+1}")
-                        #GA results saving
-                        binary = binaries[individual_index]
-                        GA_history = {}
-                        GA_history["val_acc"] = max(history["val_accuracy"])
-                        GA_history["binary"] = binary
-                        print("part 3")
-                        
-                        PATHS["PATH_RESULTS"].joinpath("ga", str(generation+1)).mkdir(parents=True, exist_ok=True)
-                        
-                        print("part 4")
-                        with open(PATHS["PATH_RESULTS"].joinpath("ga", str(generation+1), str(individual_index+1) + ".json"), "a") as fp:
-                            json.dump(GA_history, fp)
-                        print("part 5")
 
         except Exception as e:
             print(f"Error training model {eval_model}: {e}")

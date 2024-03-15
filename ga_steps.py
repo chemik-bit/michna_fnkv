@@ -1,10 +1,21 @@
 import random
+import shutil
+
+def clear_directories():
+    directories = ['./data/results/ga', './src/cnn/configs/ga', './src/cnn/models/ga']
+    for directory in directories:
+        try:
+            shutil.rmtree(Path(__file__).parent.joinpath(directory))
+            print(f"Directory {directory} cleared.")
+        except FileNotFoundError:
+            print(f"Directory {directory} does not exist, skipping.")
 
 def generate_individual(count, length):
     binary_numbers = []
     for _ in range(count):
         number = ''.join(str(random.randint(0, 1)) for _ in range(length))
         binary_numbers.append(number)
+    
     return binary_numbers
 
 from pathlib import Path
@@ -50,7 +61,7 @@ def generation_runfile_creator(binary_numbers_list, generation):
     new_yaml_content = f"""
 image_size:
   1: [60, 240]
-balances: [False]
+balances: [True]
 wav_chunks: [1]
 octaves: []
 fft_lens: [1250]
@@ -66,7 +77,7 @@ models: [
         ]
 loss: focal_loss
 optimizer: adam
-focal_loss_gamma: 5
+focal_loss_gamma: 2
 binary: [
         {binary_numbers_str}
         ]
@@ -75,3 +86,87 @@ binary: [
     with open(f"src/cnn/configs/ga/{generation+1}.yaml", "w") as new_yaml_file:
         new_yaml_file.write(new_yaml_content)
 
+import os
+import json
+
+def read_and_sort_results(generation, top_n=5):
+    results_path = Path(__file__).parent.joinpath(f'./data/results/ga/{generation+1}')
+    results = []
+    for filename in os.listdir(results_path):
+        if filename.endswith('.json'):
+            with open(os.path.join(results_path, filename), 'r') as file:
+                data = json.load(file)
+                if 'val_acc' in data:
+                    number = filename.split('.')[0]
+                    results.append((number, data['val_acc'], data["binary"]))
+    results.sort(key=lambda x: x[1], reverse=True)
+
+    sorted_file_path = Path(__file__).parent.joinpath(f'./data/results/ga/{generation+1}/sorted.txt')
+    with open(sorted_file_path, 'w') as file:
+        for result in results:
+            file.write(f"Filename: {result[0]}, Validation Accuracy: {result[1]}, Binary: {result[2]}\n")
+    #print("vysledky", results)
+    
+    """
+    individuals_path = Path(__file__).parent.joinpath(f'./data/results/ga/{generation+1}/individuals.txt')
+    with open(individuals_path, 'r') as file:
+        binary_numbers_list = eval(file.read())
+    """
+
+    top_binaries = [result[2] for result in results[:5]]
+    top_indexes = [result[0] for result in results[:5]]
+    return top_binaries, top_indexes
+
+import random
+
+def crossover(binary_numbers_list, bin_indexes, generation):
+    # Duplicate the list of binary numbers
+    duplicated_list = binary_numbers_list.copy()
+    crossover_results = binary_numbers_list.copy()
+    
+    # Iterate over the duplicated list in pairs
+    for i in range(0, len(duplicated_list)):
+        # Select two binary numbers for crossover
+        binary1 = duplicated_list[i]
+
+        #binary2 = random.choice(duplicated_list)
+        binary2_index = random.randint(0, len(duplicated_list) - 1)
+        binary2 = duplicated_list[binary2_index]
+
+        binary3_index = random.randint(0, len(duplicated_list) - 1)
+        binary3 = duplicated_list[binary3_index]
+
+        #print(f"Index of orig binary: {bin_indexes[i]}")
+        #print(f"Index of swap binary: {binary2_index+1}")
+        #print(f"Index of swap binary: {binary3_index+1}")
+        
+        # Pick a random length for the cut
+        cut_length = random.randint(1, len(binary1))
+        cut_length2 = random.randint(1, len(binary1))
+        #print("cut", cut_length)
+        
+        # Perform the crossover
+        new_binary1 = binary1[:cut_length] + binary2[cut_length:]
+        new_binary2 = binary1[:cut_length2] + binary3[cut_length2:]
+        
+        # Add the new binary numbers to the results list
+        crossover_results.extend([new_binary1, new_binary2])
+
+        sorted_file_path = Path(__file__).parent.joinpath(f'./data/results/ga/{generation+1}/sorted.txt')
+        with open(sorted_file_path, 'a') as file:
+            file.write(f"({binary2_index}, {cut_length}), ({binary3_index}, {cut_length2})\n")
+
+        #print("delka vysledky", len(crossover_results))
+        #print("delka vstupni", len(duplicated_list))
+    
+        #print("original ", duplicated_list[i])
+        #print("cut      ", binary1[:cut_length])
+        #print("crossover", crossover_results[-1])
+
+        #print("\n\n\n")
+        
+        #print("original ", duplicated_list[i])
+        #print("cut      ", binary1[:cut_length])
+        #print("crossover", crossover_results[-2])
+    
+    return crossover_results
