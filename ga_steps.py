@@ -131,8 +131,8 @@ def read_and_sort_results(generation, top_n=5):
         binary_numbers_list = eval(file.read())
     """
 
-    top_binaries = [result[2][0] for result in results[:5]]
-    top_indexes = [result[0] for result in results[:5]]
+    top_binaries = [result[2][0] for result in results[:top_n]]
+    top_indexes = [result[0] for result in results[:top_n]]
     return top_binaries, top_indexes
 
 import random
