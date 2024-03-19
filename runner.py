@@ -3,7 +3,7 @@ from ga_steps import *
 import m2_cnn_pipeline as m2
 import time
 
-num_generations = 20
+num_generations = 10
 
 clear_directories()
 
@@ -12,9 +12,9 @@ for generation in range(num_generations):
     
     print("GENERACE NYNI: ", generation+1, "\n\n\n\n")
     if generation == 0:
-        binary_numbers_list = generate_individual(40, 207)
+        binary_numbers_list = generate_individual(300, 207)
     else:
-        new_binary_numbers_list = generate_individual(10, 207)
+        new_binary_numbers_list = generate_individual(150, 207)
         binary_numbers_list = binary_numbers_list + new_binary_numbers_list
 
 
@@ -34,7 +34,7 @@ for generation in range(num_generations):
     
     
     
-    selected_individuals, selected_indexes = read_and_sort_results(generation, 10)
+    selected_individuals, selected_indexes = read_and_sort_results(generation, 50)
     """
     for result in selected_individuals:
         print(f"Filename: {result[0]}, Validation Accuracy: {result[1]}")
