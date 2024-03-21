@@ -365,7 +365,7 @@ def pipeline(configfile: Path, generation: int, individual, ga: bool = False):
     # TODO handle lr schedule and different params for optimizers
 
     for individual_index, eval_model in enumerate(models):
-        if True:
+        try:
             classifier = importlib.import_module(eval_model)
             print("classifier", classifier)
             for fft_len, fft_overlap, balance, chunk, image_size in itertools.product(fft_lens, fft_overlaps, balances, chunks, image_sizes):
@@ -509,7 +509,7 @@ def pipeline(configfile: Path, generation: int, individual, ga: bool = False):
                         #print("part 5")
                         print("generation", f"{generation+1}")
                         print("individual_index", f"{individual+1}")
-        """
+        
         except Exception as e:
             print(f"Error training model {eval_model}: {e}")
             if ga:
@@ -521,7 +521,7 @@ def pipeline(configfile: Path, generation: int, individual, ga: bool = False):
                     json.dump(GA_history, fp)
 
                 continue
-        """
+
 
 def main(configfile_path, generation, individual, ga=False):
     configfile = Path(configfile_path)
