@@ -184,7 +184,8 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
         # Prepare wav files for mentioned databases in training and validation
     else:
         print("using voiced and svdadult databases")
-        used_dbs = ["voiced", "svdadult"]
+        #used_dbs = ["voiced", "svdadult"] předěláno na níže uvedené
+        used_dbs = ["svdadult"]
         # Prepare wav files for both databases
 
     for db in used_dbs:
@@ -192,6 +193,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
         destination_path_wav = PATHS["PATH_WAV"].joinpath(db).joinpath(str(wav_chunks))
         print(f"Converting PATH_{db.upper()}_RENAMED to WAV...")
         for file in source_path.iterdir():
+            print("file \n\n\n\n", file, "\n\n\n\n")
             sample_rate = int(file.stem.split("_")[-1])
             txt2wav(file, destination_path_wav, sample_rate, wav_chunks)
 
@@ -202,6 +204,10 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
         single_chunk = True if wav_chunks == 1 else False
         print(f" single chunk {single_chunk}")
         for sound_file in destination_path_wav.iterdir():
+            # e.g.  /Users/honzamichna/Documents/GitHub/michna_fnkv/data/wav/svdadult/1/svdadult1081_healthy_50000_00000.wav
+            print("sound_file in destination path wav\n\n\n\n", sound_file, "\n\n\n\n")
+            #print("fft_len \n\n\n\n", fft_len, "\n\n\n\n")
+            #print("fft_overlap \n\n\n\n", fft_overlap, "\n\n\n\n")
             if not destination_path_spectrogram.joinpath(f"{sound_file.stem}.png").exists():
                 # Create spectrogram
                 wav2spectrogram(sound_file, destination_path_spectrogram, fft_len, fft_overlap,
@@ -349,7 +355,7 @@ def pipeline(configfile: Path, generation: int, individual, ga: bool = False):
     learning_rate_exp = float(config["lr"])
     models = config["models"]
     #print("models\n\n\n", models)
-    binary = config["binary"]
+    binary = config["binary"] if "binary" in config else ""
     print("binary", binary)
 
     if config["loss"] == "focal_loss":
