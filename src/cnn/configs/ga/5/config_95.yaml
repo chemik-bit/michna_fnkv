@@ -1,0 +1,24 @@
+
+    image_size:
+        1: [60, 240]
+    balances: [True]
+    wav_chunks: [1]
+    octaves: []
+    fft_lens: [1250]
+    fft_overlaps: [625]
+    training_db: svdadult
+    validation_db: svdadult
+    batch_size_exp: 25
+    max_epochs: 84
+    lr: 1e-05
+    transform: v2
+    models: [
+            'src.cnn.models.ga.5.model_95'
+            ]
+    loss: binary_crossentropy
+    optimizer: adam
+    focal_loss_gamma: 2
+    binary: [
+            '001100110001110111110000111101110010111001010100100000000000101000010110101111100010101011001100010110111110001001111001011101111110101110100110111100111001111110011111110000000000111101111100100000100100000'
+            ]
+    

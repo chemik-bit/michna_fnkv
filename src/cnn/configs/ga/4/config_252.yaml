@@ -1,0 +1,24 @@
+
+    image_size:
+        1: [60, 240]
+    balances: [True]
+    wav_chunks: [1]
+    octaves: []
+    fft_lens: [1250]
+    fft_overlaps: [625]
+    training_db: svdadult
+    validation_db: svdadult
+    batch_size_exp: 121
+    max_epochs: 521
+    lr: 1e-05
+    transform: v1
+    models: [
+            'src.cnn.models.ga.4.model_252'
+            ]
+    loss: focal_loss
+    optimizer: adagrad
+    focal_loss_gamma: 2
+    binary: [
+            '111100111111100001101010111111000000011101011011101010111011000001111001011101101001100000100111101000010001111100011011000010110101101000011101110000001111000110100010010000100000010110011110111101100010100'
+            ]
+    
