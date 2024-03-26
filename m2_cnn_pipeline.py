@@ -210,6 +210,8 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
             #print("fft_overlap \n\n\n\n", fft_overlap, "\n\n\n\n")
             if not destination_path_spectrogram.joinpath(f"{sound_file.stem}.png").exists():
                 # Create spectrogram
+                print("creating spectrogram, args: ", sound_file, destination_path_spectrogram, fft_len, fft_overlap,
+                      spectrogram_resolution, octaves, single_chunk, resampling_frequency)
                 wav2spectrogram(sound_file, destination_path_spectrogram, fft_len, fft_overlap,
                                 spectrogram_resolution, octaves=octaves, standard_chunk=single_chunk,
                                 resampling_freq=resampling_frequency)

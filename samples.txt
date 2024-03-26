@@ -1,0 +1,104 @@
+sample source for spectrogram
+
+
+
+ /Users/honzamichna/Documents/GitHub/michna_fnkv/data/wav/svdadult/1/svdadult0363_unhealthy_50000_00000.wav 
+
+
+
+
+inch_x
+
+
+
+ 0.2 
+
+
+
+
+inch_y
+
+
+
+ 0.8 
+
+
+
+
+sample 
+
+
+
+ [-0.470738 -0.430327 -0.398021 ... -0.263142 -0.256847 -0.256244] 
+
+
+
+
+1
+2
+3
+standard_chunk
+
+
+
+ True 
+
+
+
+
+sample_rate
+
+
+
+ 50000 
+
+
+
+
+samples
+
+
+
+ [-0.470738 -0.430327 -0.398021 ... -0.263142 -0.256847 -0.256244] 
+
+
+
+
+len samples
+
+
+
+ 98385 
+
+
+
+
+success
+4
+frequencies
+
+
+
+ 626 
+
+
+
+
+times
+
+
+
+ 79 
+
+
+
+
+spectrogram
+
+
+
+ 49454 
+
+
+
+

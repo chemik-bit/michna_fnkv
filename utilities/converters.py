@@ -10,8 +10,14 @@ import numpy as np
 import shutil
 # import cv2
 #from timeit import default_timer as timer
-from utilities.octave_filter_bank import octave_filtering
+try:
+    from utilities.octave_filter_bank import octave_filtering
+except ImportError:
+    from octave_filter_bank import octave_filtering
 
+import librosa
+import librosa.display
+import IPython.display as ipd
 
 def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length: int, fft_overlap: int,
                     spectrogram_resolution: tuple, dpi: int = 300, octaves: list = None, standard_chunk: bool = False,
@@ -63,6 +69,7 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
             print("success")
             middle_point = int(len(samples) / 2)
             samples = samples[- middle_point - int(sample_rate / 2): - middle_point + int(sample_rate / 2)]
+            print("new_samples", len(samples))
         else:
             print("Not enough data to create standard chunk.")
             return
@@ -81,21 +88,45 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
     plot_axes.set_axis_off()
     fig.add_axes(plot_axes)
     plot_axes.pcolormesh(times, frequencies, 10 * np.log10(spectrogram), cmap="Greys")
-    plt.savefig(destination_path.joinpath(f"{source_path.stem}.png"), format="png",
-                bbox_inches='tight', pad_inches=0, dpi=300)
+    plt.savefig(destination_path.joinpath(f"{source_path.stem}full500.png"), format="png", \
+                bbox_inches='tight', pad_inches=0, dpi=500)
+    plt.show()
     plt.close("all")
 
+wav2spectrogram(Path("/Users/honzamichna/Documents/GitHub/michna_fnkv/data/wav/svdadult/1/svdadult0363_unhealthy_50000_00000.wav"), Path("/Users/honzamichna/Desktop"), \
+                1250, 625, (79, 626), octaves=[], standard_chunk=True, resampling_freq=None)
+"""
+wav2spectrogram(sound_file, destination_path_spectrogram, 
+                fft_len, fft_overlap,
+                                spectrogram_resolution, octaves=octaves, standard_chunk=single_chunk,
+                                resampling_freq=resampling_frequency)
+                                """
 
-def stereo2mono(source_path: Path, destination_path: Path):
-    """
-    Converts stereo wav sound file to mono (single channel) wav file.
-    :param source_path: path to stereo wav file
-    :param destination_path: path to save converted mono wav file
-    :return: None
-    """
-    sound = AudioSegment.from_wav(source_path)
-    sound = sound.set_channels(1)
-    sound.export(destination_path.joinpath(source_path.name), format="wav")
+def wav2spectrogram2(source_path: Path, destination_path: Path, fft_window_length: int, fft_overlap: int,
+                    spectrogram_resolution: tuple, dpi: int = 300, octaves: list = None, standard_chunk: bool = False,
+                    resampling_freq: float = None):
+    plt.figure()
+    scale, sr = librosa.load(source_path)
+    S_scale = librosa.stft(scale, n_fft=fft_window_length, hop_length=fft_overlap)
+    print("S_scale", S_scale.shape)
+    print(type(S_scale[0][0]))
+    Y_scale = np.abs(S_scale) ** 2
+    print("Y_scale", Y_scale.shape)
+    print(type(Y_scale[0][0]))
+    plot_spectrogram(Y_scale, sr, HOP_SIZE)
+    Y_log_scale = librosa.power_to_db(Y_scale)
+    plot_spectrogram(Y_log_scale, sr, HOP_SIZE)
+
+def plot_spectrogram(Y, sr, hop_length, y_axis="linear"):
+    plt.figure(figsize=(25, 10))
+    librosa.display.specshow(Y, 
+                             sr=sr, 
+                             hop_length=hop_length, 
+                             x_axis="time", 
+                             y_axis=y_axis)
+    plt.colorbar(format="%+2.f")
+
+
 
 
 def txt2wav(source_path: Path, destination_path: Path, sample_rate: int, chunks: int = 1):
