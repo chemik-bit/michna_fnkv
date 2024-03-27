@@ -12,9 +12,9 @@ for generation in range(num_generations):
     
     print("GENERACE NYNI: ", generation+1, "\n\n\n\n")
     if generation == 0:
-        binary_numbers_list = generate_individual(300, 207)
+        binary_numbers_list = generate_individual(30, 219)
     else:
-        new_binary_numbers_list = generate_individual(150, 207)
+        new_binary_numbers_list = generate_individual(20, 219)
         binary_numbers_list = binary_numbers_list + new_binary_numbers_list
 
 

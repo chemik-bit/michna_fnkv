@@ -25,7 +25,7 @@ def model_creation(binary: str, model_index: int, generation: int):
     Path(__file__).parent.joinpath(f'./src/cnn/models/ga_models/{generation+1}').mkdir(parents=True, exist_ok=True)
     with open(Path(__file__).parent.joinpath(f'./src/cnn/models/ga_models/{generation+1}/model_{model_index}.py'), 'w') as file:
             file.write("from tensorflow.keras import layers\nimport tensorflow as tf\n\n\ndef create_model(input_size):\n    x = tf.keras.Sequential()\n")
-            intro = 24 
+            intro = 36 + 1
             num_conv_layers = max(int(binary[intro:intro+3], 2), 1)
             conv_layer_length = 18
             for conv_layer in range(num_conv_layers):
