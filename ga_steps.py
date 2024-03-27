@@ -77,7 +77,7 @@ def generation_runfile_creator(binary_numbers_list, generation):
         gamma = int(binary[23:25], 2) + 1
         upper_bound, lower_bound = (100, 0) if binary[25:27] == "00" else (200, 0) if binary[25:27] == "01" else (300, 0) if binary[25:27] == "10" else (250, 50)
         fft_len = 512 + 256 * int(binary[27:30], 2)
-        fft_overlap = fft_len * {0: 1/16, 1: 1/8, 2: 1/4, 3: 1/2}[int(binary[30:32], 2)]
+        fft_overlap = int(round(fft_len * {0: 1/16, 1: 1/8, 2: 1/4, 3: 1/2}[int(binary[30:32], 2)]))
         if binary[32] == "1":
             img_size_options = [[80, 600], [40, 300], [60, 450], [80, 400], [60, 240], [50, 300], [35, 350], [20, 500]]
             img_size_index = int(binary[33:36], 2)

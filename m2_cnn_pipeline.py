@@ -494,7 +494,7 @@ def pipeline(configfile: Path, generation: int, individual, ga: bool = False):
                         writer.writerow(results_to_write)
 
                     # Concatenate configfile.stem and "_original" to form a single directory name
-                    directory_name = f"{generation}_original"
+                    directory_name = f"{generation+1}_original"
                     # Use joinpath to append this new directory name to PATH_RESULTS
                     PATHS["PATH_RESULTS"].joinpath(directory_name).mkdir(exist_ok=True)
                     #print("part 2")
