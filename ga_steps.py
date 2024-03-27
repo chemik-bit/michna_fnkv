@@ -22,8 +22,8 @@ from pathlib import Path
 
 def model_creation(binary: str, model_index: int, generation: int):
     #Path(__file__).parent.joinpath('./src/cnn/models/ga').mkdir(parents=True, exist_ok=True)
-    Path(__file__).parent.joinpath(f'./src/cnn/models/ga/{generation+1}').mkdir(parents=True, exist_ok=True)
-    with open(Path(__file__).parent.joinpath(f'./src/cnn/models/ga/{generation+1}/model_{model_index}.py'), 'w') as file:
+    Path(__file__).parent.joinpath(f'./src/cnn/models/ga_models/{generation+1}').mkdir(parents=True, exist_ok=True)
+    with open(Path(__file__).parent.joinpath(f'./src/cnn/models/ga_models/{generation+1}/model_{model_index}.py'), 'w') as file:
             file.write("from tensorflow.keras import layers\nimport tensorflow as tf\n\n\ndef create_model(input_size):\n    x = tf.keras.Sequential()\n")
             intro = 24 
             num_conv_layers = max(int(binary[intro:intro+3], 2), 1)
@@ -65,25 +65,35 @@ def model_creation(binary: str, model_index: int, generation: int):
 def generation_runfile_creator(binary_numbers_list, generation):
     Path(__file__).parent.joinpath(f'./src/cnn/configs/ga/{generation+1}').mkdir(parents=True, exist_ok=True)
     for individual in range(len(binary_numbers_list)):
-        model = f"'src.cnn.models.ga.{generation+1}.model_{individual+1}'"
+        model = f"'src.cnn.models.ga_models.{generation+1}.model_{individual+1}'"
         binary = binary_numbers_list[individual]
         batch_size_exp = max(int(binary[:7], 2), 1)
-        max_epochs = max(int(binary[8:17], 2)+25, 25)
+        max_epochs = max(int(binary[8:17], 2)+25, 100)
         lr = {0: 0.01, 1: 0.001, 2: 0.0001, 3: 0.00001}[int(binary[17:19], 2)]
         transform_version = int(binary[19], 2)
         transform = f"v{transform_version + 1}"
         loss_choice = "binary_crossentropy" if int(binary[20], 2) == 0 else "focal_loss"
         optimizer_choice = "adam" if int(binary[21:23], 2) == 0 else "adagrad" if int(binary[21:23], 2) == 1 else "sgd" if int(binary[21:23], 2) == 2 else "rmsprop"
         gamma = int(binary[23:25], 2) + 1
-
+        upper_bound, lower_bound = (100, 0) if binary[25:27] == "00" else (200, 0) if binary[25:27] == "01" else (300, 0) if binary[25:27] == "10" else (250, 50)
+        fft_len = 512 + 256 * int(binary[27:30], 2)
+        fft_overlap = fft_len * {0: 1/16, 1: 1/8, 2: 1/4, 3: 1/2}[int(binary[30:32], 2)]
+        if binary[32] == "1":
+            img_size_options = [[80, 600], [40, 300], [60, 450], [80, 400], [60, 240], [50, 300], [35, 350], [20, 500]]
+            img_size_index = int(binary[33:36], 2)
+            img_size = img_size_options[img_size_index]
+        else:
+            img_size = (79, 626)
+        balanced = True if binary[36] == "1" else False
+        
         new_yaml_content = f"""
     image_size:
-        1: [60, 240]
-    balances: [True]
+        1: {img_size}
+    balances: [{balanced}]
     wav_chunks: [1]
     octaves: []
-    fft_lens: [1250]
-    fft_overlaps: [625]
+    fft_lens: [{fft_len}]
+    fft_overlaps: [{fft_overlap}]
     training_db: svdadult
     validation_db: svdadult
     batch_size_exp: {batch_size_exp}
@@ -99,6 +109,8 @@ def generation_runfile_creator(binary_numbers_list, generation):
     binary: [
             '{binary}'
             ]
+    upper_bound: {upper_bound}
+    lower_bound: {lower_bound}
     """         
                 
         with open(f"src/cnn/configs/ga/{generation+1}/config_{individual+1}.yaml", "w") as new_yaml_file:
@@ -151,8 +163,9 @@ def crossover(binary_numbers_list, bin_indexes, generation):
         binary2_index = random.randint(0, len(duplicated_list) - 1)
         binary2 = duplicated_list[binary2_index]
 
-        binary3_index = random.randint(0, len(duplicated_list) - 1)
-        binary3 = duplicated_list[binary3_index]
+        #If two crossovers wanted
+        #binary3_index = random.randint(0, len(duplicated_list) - 1)
+        #binary3 = duplicated_list[binary3_index]
 
         #print(f"Index of orig binary: {bin_indexes[i]}")
         #print(f"Index of swap binary: {binary2_index+1}")
@@ -160,19 +173,21 @@ def crossover(binary_numbers_list, bin_indexes, generation):
         
         # Pick a random length for the cut
         cut_length = random.randint(1, len(binary1))
-        cut_length2 = random.randint(1, len(binary1))
+        #cut_length2 = random.randint(1, len(binary1))
         #print("cut", cut_length)
         
         # Perform the crossover
         new_binary1 = binary1[:cut_length] + binary2[cut_length:]
-        new_binary2 = binary1[:cut_length2] + binary3[cut_length2:]
+        #new_binary2 = binary1[:cut_length2] + binary3[cut_length2:]
         
         # Add the new binary numbers to the results list
-        crossover_results.extend([new_binary1, new_binary2])
+        #crossover_results.extend([new_binary1, new_binary2])
+        crossover_results.extend([new_binary1])
 
         sorted_file_path = Path(__file__).parent.joinpath(f'./data/results/ga/{generation+1}/sorted.txt')
         with open(sorted_file_path, 'a') as file:
-            file.write(f"({binary2_index}, {cut_length}), ({binary3_index}, {cut_length2})\n")
+            #file.write(f"({binary2_index}, {cut_length}), ({binary3_index}, {cut_length2})\n")
+            file.write(f"({binary2_index}, {cut_length})\n")
 
         #print("delka vysledky", len(crossover_results))
         #print("delka vstupni", len(duplicated_list))

@@ -20,8 +20,8 @@ import librosa.display
 import IPython.display as ipd
 
 def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length: int, fft_overlap: int,
-                    spectrogram_resolution: tuple, dpi: int = 300, octaves: list = None, standard_chunk: bool = False,
-                    resampling_freq: float = None):
+                    spectrogram_resolution: tuple, dpi: int = 100, octaves: list = None, standard_chunk: bool = False,
+                    resampling_freq: float = None, lower_bound: int = 0, upper_bound: int = 626):
     """
     Converts sound file (source_path) to its spectrogram and save it to destination_path folder.
     Filename is the same as source sound file (but with .png extension).
@@ -40,61 +40,81 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
     inch_x = spectrogram_resolution[0] / dpi
     inch_y = spectrogram_resolution[1] / dpi
 
-    print("sample source for spectrogram\n\n\n\n", source_path, "\n\n\n\n")
-    print("inch_x\n\n\n\n", inch_x, "\n\n\n\n")
-    print("inch_y\n\n\n\n", inch_y, "\n\n\n\n")
+    # print("sample source for spectrogram\n\n\n\n", source_path, "\n\n\n\n")
+    # print("inch_x\n\n\n\n", inch_x, "\n\n\n\n")
+    # print("inch_y\n\n\n\n", inch_y, "\n\n\n\n")
     # Create spectrogram
     if octaves is None:
         octaves = []
 
     sample_rate, samples = wavfile.read(source_path)
     #right now it is one channel
-    print("sample \n\n\n\n", samples, "\n\n\n\n")
+    # print("sample \n\n\n\n", samples, "\n\n\n\n")
     
-    print("1")
+    # print("1")
     if resampling_freq is not None:
         number_of_samples = round(len(samples) * resampling_freq / sample_rate)
         samples = signal.resample(samples, number_of_samples)
         sample_rate = resampling_freq
-    print("2")
+    # print("2")
     if octaves is not None:
         samples = octave_filtering(octaves, samples)
-    print("3")
+    # print("3")
     if standard_chunk:
-        print("standard_chunk\n\n\n\n", standard_chunk, "\n\n\n\n")
-        print("sample_rate\n\n\n\n", sample_rate, "\n\n\n\n")
-        print("samples\n\n\n\n", samples, "\n\n\n\n")
-        print("len samples\n\n\n\n", len(samples), "\n\n\n\n")
+        # print("standard_chunk\n\n\n\n", standard_chunk, "\n\n\n\n")
+        # print("sample_rate\n\n\n\n", sample_rate, "\n\n\n\n")
+        # print("samples\n\n\n\n", samples, "\n\n\n\n")
+        # print("len samples\n\n\n\n", len(samples), "\n\n\n\n")
         if len(samples) > sample_rate + 1:
-            print("success")
+            # print("success")
             middle_point = int(len(samples) / 2)
             samples = samples[- middle_point - int(sample_rate / 2): - middle_point + int(sample_rate / 2)]
-            print("new_samples", len(samples))
+            # print("new_samples", len(samples))
         else:
-            print("Not enough data to create standard chunk.")
+            # print("Not enough data to create standard chunk.")
             return
-    print("4")
+    # print("4")
     frequencies, times, spectrogram = signal.spectrogram(samples,
                                                          fs=sample_rate,
                                                          scaling="spectrum", nfft=None, mode="psd",
                                                          window=np.hamming(fft_window_length),
                                                          noverlap=fft_overlap)
-    print("frequencies\n\n\n\n", frequencies.size, "\n\n\n\n")
-    print("times\n\n\n\n", times.size, "\n\n\n\n")
-    print("spectrogram\n\n\n\n", spectrogram.size, "\n\n\n\n")
-    fig = plt.figure(frameon=False)
-    fig.set_size_inches(inch_y, inch_x) #first arg sets the width, second the height
+    # print("frequencies\n\n\n\n", frequencies.size, "\n\n\n\n")
+    # print("times\n\n\n\n", times.size, "\n\n\n\n")
+    # print("spectrogram\n\n\n\n", spectrogram.size, "\n\n\n\n")
+
+    fig = plt.figure(frameon=False, figsize=(inch_x, inch_y))
+    #fig.set_size_inches(inch_x, inch_y)  # first arg sets the width, second the height
     plot_axes = plt.Axes(fig, [0., 0., 1., 1.])
     plot_axes.set_axis_off()
-    fig.add_axes(plot_axes)
-    plot_axes.pcolormesh(times, frequencies, 10 * np.log10(spectrogram), cmap="Greys")
-    plt.savefig(destination_path.joinpath(f"{source_path.stem}full500.png"), format="png", \
-                bbox_inches='tight', pad_inches=0, dpi=500)
-    plt.show()
-    plt.close("all")
 
-wav2spectrogram(Path("/Users/honzamichna/Documents/GitHub/michna_fnkv/data/wav/svdadult/1/svdadult0363_unhealthy_50000_00000.wav"), Path("/Users/honzamichna/Desktop"), \
-                1250, 625, (79, 626), octaves=[], standard_chunk=True, resampling_freq=None)
+    # Add the custom axes to the figure
+    fig.add_axes(plot_axes)
+    
+    # Generate the plot
+    upper_bound = min(upper_bound, len(frequencies))
+    # Slice the frequencies and spectrogram to include only the lower 500 frequency bins
+    lower_frequencies = frequencies[lower_bound:upper_bound]
+    lower_spectrogram = spectrogram[lower_bound:upper_bound, :]
+    plt.pcolormesh(times, lower_frequencies, 10 * np.log10(lower_spectrogram), cmap="Greys")
+    
+    #standard
+    #plot_axes.pcolormesh(times, frequencies, 10 * np.log10(spectrogram), cmap="Greys")
+    # Save the figure
+    plt.savefig(destination_path.joinpath(f"{source_path.stem}.png"), format="png", dpi=dpi, bbox_inches='tight', pad_inches=0)
+
+
+    # Show the plot
+    #plt.show()
+
+    # Close the figure to free up memory
+    plt.close(fig)  # It's better to close the figure explicitly by referencing it
+
+#wav2spectrogram(Path("/Users/honzamichna/Documents/GitHub/michna_fnkv/data/wav/svdadult/1/svdadult0363_unhealthy_50000_00000.wav"), Path("/Users/honzamichna/Desktop"), \
+#                1250, 625, (79, 626), dpi=200, octaves=[], standard_chunk=True, resampling_freq=None)
+
+#wav2spectrogram(Path("/Users/honzamichna/Documents/GitHub/michna_fnkv/data/wav/svdadult/1/svdadult0363_unhealthy_50000_00000.wav"), Path("/Users/honzamichna/Desktop"), \
+#                1250, 625, (79, 400), dpi=100, octaves=[], standard_chunk=True, resampling_freq=None)
 """
 wav2spectrogram(sound_file, destination_path_spectrogram, 
                 fft_len, fft_overlap,
@@ -139,18 +159,18 @@ def txt2wav(source_path: Path, destination_path: Path, sample_rate: int, chunks:
     :return: None
     """
     destination_path.mkdir(parents=True, exist_ok=True)
-    print("source_path\n\n\n\n", source_path, "\n\n\n\n")
+    #print("source_path\n\n\n\n", source_path, "\n\n\n\n")
     txt_data = np.loadtxt(source_path)
-    print("txt_data\n\n\n\n", txt_data, "\n\n\n\n")
-    print("len txt_data\n\n\n\n", len(txt_data), "\n\n\n\n")
+    #print("txt_data\n\n\n\n", txt_data, "\n\n\n\n")
+    #print("len txt_data\n\n\n\n", len(txt_data), "\n\n\n\n")
     if chunks > 1:
         wav_chunks = np.array_split(txt_data, chunks)
         wav_chunks.pop(0)  # to remove bad data at start
     else:
         wav_chunks = np.array_split(txt_data, chunks)
-        print("chunk ==== single-1")
-        print(wav_chunks)
-        print("len wav_chunks\n\n\n\n", wav_chunks[0].size, "\n\n\n\n")
+        #print("chunk ==== single-1")
+        #print(wav_chunks)
+        #print("len wav_chunks\n\n\n\n", wav_chunks[0].size, "\n\n\n\n")
     
     
     for idx, wav_chunk in enumerate(wav_chunks):

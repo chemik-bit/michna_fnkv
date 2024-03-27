@@ -139,6 +139,7 @@ def balance_by_duplication(dataset_path):
 
 def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
                   fft_len: int, fft_overlap: int, spectrogram_resolution: tuple, resampling_frequency: float,
+                  upper_bound: int = 626, lower_bound: int = 0,
                   **options):
     """
     Function providing the data pipelining.
@@ -174,6 +175,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
     subdir_name = f"ch{wav_chunks}_" \
                   f"res{spectrogram_resolution[0]}x{spectrogram_resolution[1]}_" \
                   f"octaves{''.join(map(str, octaves))}_" \
+                  f"upper_lower_bounds{upper_bound}_{lower_bound}_" \
                   f"fft{fft_len}_" \
                   f"overlap{fft_overlap}_resample{resampling_frequency}"
 
@@ -193,7 +195,7 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
         destination_path_wav = PATHS["PATH_WAV"].joinpath(db).joinpath(str(wav_chunks))
         print(f"Converting PATH_{db.upper()}_RENAMED to WAV...")
         for file in source_path.iterdir():
-            print("file \n\n\n\n", file, "\n\n\n\n")
+            #print("file \n\n\n\n", file, "\n\n\n\n")
             sample_rate = int(file.stem.split("_")[-1])
             txt2wav(file, destination_path_wav, sample_rate, wav_chunks)
 
@@ -202,19 +204,13 @@ def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
         destination_path_spectrogram.mkdir(parents=True, exist_ok=True)
         print("Converting WAV files to spectrograms...")
         single_chunk = True if wav_chunks == 1 else False
-        print(f" single chunk {single_chunk}")
+        
         for sound_file in destination_path_wav.iterdir():
-            # e.g.  /Users/honzamichna/Documents/GitHub/michna_fnkv/data/wav/svdadult/1/svdadult1081_healthy_50000_00000.wav
-            print("sound_file in destination path wav\n\n\n\n", sound_file, "\n\n\n\n")
-            #print("fft_len \n\n\n\n", fft_len, "\n\n\n\n")
-            #print("fft_overlap \n\n\n\n", fft_overlap, "\n\n\n\n")
             if not destination_path_spectrogram.joinpath(f"{sound_file.stem}.png").exists():
-                # Create spectrogram
-                print("creating spectrogram, args: ", sound_file, destination_path_spectrogram, fft_len, fft_overlap,
-                      spectrogram_resolution, octaves, single_chunk, resampling_frequency)
                 wav2spectrogram(sound_file, destination_path_spectrogram, fft_len, fft_overlap,
                                 spectrogram_resolution, octaves=octaves, standard_chunk=single_chunk,
-                                resampling_freq=resampling_frequency)
+                                resampling_freq=resampling_frequency, upper_bound=upper_bound, lower_bound=lower_bound)
+        
 
     print("Dataset splitting...")
     # 3. Create training/validation datasets
@@ -356,6 +352,8 @@ def pipeline(configfile: Path, generation: int, individual, ga: bool = False):
     max_epochs = config["max_epochs"]
     learning_rate_exp = float(config["lr"])
     models = config["models"]
+    upper_bound = config.get("upper_bound", 626)
+    lower_bound = config.get("lower_bound", 0)
     #print("models\n\n\n", models)
     binary = config["binary"] if "binary" in config else ""
     print("binary", binary)
@@ -386,7 +384,7 @@ def pipeline(configfile: Path, generation: int, individual, ga: bool = False):
                     print("Entering data_pipeline....")
                     path = data_pipeline(chunk, [], balance, fft_len, fft_overlap, image_size,
                                          training=training_db, validation=validation_db,
-                                         resampling_frequency=resampling_frequency)
+                                         resampling_frequency=resampling_frequency, upper_bound=upper_bound, lower_bound=lower_bound)
                     print("Exited data_pipeline....")
                     print("Loading datasets....")
                     train = tf.keras.preprocessing.image_dataset_from_directory(
@@ -496,11 +494,11 @@ def pipeline(configfile: Path, generation: int, individual, ga: bool = False):
                         writer.writerow(results_to_write)
 
                     # Concatenate configfile.stem and "_original" to form a single directory name
-                    directory_name = f"{configfile.stem}_original"
+                    directory_name = f"{generation}_original"
                     # Use joinpath to append this new directory name to PATH_RESULTS
                     PATHS["PATH_RESULTS"].joinpath(directory_name).mkdir(exist_ok=True)
                     #print("part 2")
-                    with open(PATHS["PATH_RESULTS"].joinpath(directory_name, history_file + ".json"), "w") as fp:
+                    with open(PATHS["PATH_RESULTS"].joinpath(directory_name).joinpath(f"{individual}.json"), "w") as fp:
                         json.dump(history, fp)
 
                     if ga:
