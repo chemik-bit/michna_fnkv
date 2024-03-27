@@ -25,7 +25,7 @@ def model_creation(binary: str, model_index: int, generation: int):
     Path(__file__).parent.joinpath(f'./src/cnn/models/ga_models/{generation+1}').mkdir(parents=True, exist_ok=True)
     with open(Path(__file__).parent.joinpath(f'./src/cnn/models/ga_models/{generation+1}/model_{model_index}.py'), 'w') as file:
             file.write("from tensorflow.keras import layers\nimport tensorflow as tf\n\n\ndef create_model(input_size):\n    x = tf.keras.Sequential()\n")
-            intro = 36 + 1
+            intro = 37 + 1
             num_conv_layers = max(int(binary[intro:intro+3], 2), 1)
             conv_layer_length = 18
             for conv_layer in range(num_conv_layers):
@@ -75,16 +75,19 @@ def generation_runfile_creator(binary_numbers_list, generation):
         loss_choice = "binary_crossentropy" if int(binary[20], 2) == 0 else "focal_loss"
         optimizer_choice = "adam" if int(binary[21:23], 2) == 0 else "adagrad" if int(binary[21:23], 2) == 1 else "sgd" if int(binary[21:23], 2) == 2 else "rmsprop"
         gamma = int(binary[23:25], 2) + 1
-        upper_bound, lower_bound = (100, 0) if binary[25:27] == "00" else (200, 0) if binary[25:27] == "01" else (300, 0) if binary[25:27] == "10" else (250, 50)
-        fft_len = 512 + 256 * int(binary[27:30], 2)
-        fft_overlap = int(round(fft_len * {0: 1/16, 1: 1/8, 2: 1/4, 3: 1/2}[int(binary[30:32], 2)]))
-        if binary[32] == "1":
+        if binary[25] == "0":
+            upper_bound, lower_bound = (100, 0) if binary[26:28] == "00" else (200, 0) if binary[26:28] == "01" else (300, 0) if binary[26:28] == "10" else (250, 50)
+        else:
+            upper_bound, lower_bound = (0,0)
+        fft_len = 512 + 256 * int(binary[28:31], 2)
+        fft_overlap = int(round(fft_len * {0: 1/16, 1: 1/8, 2: 1/4, 3: 1/2}[int(binary[31:33], 2)]))
+        if binary[33] == "1":
             img_size_options = [[80, 600], [40, 300], [60, 450], [80, 400], [60, 240], [50, 300], [35, 350], [20, 500]]
-            img_size_index = int(binary[33:36], 2)
+            img_size_index = int(binary[34:37], 2)
             img_size = img_size_options[img_size_index]
         else:
             img_size = [79, 626]
-        balanced = True if binary[36] == "1" else False
+        balanced = True if binary[37] == "1" else False
         
         new_yaml_content = f"""
     image_size:

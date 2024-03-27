@@ -21,7 +21,7 @@ except ImportError:
 
 def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length: int, fft_overlap: int,
                     spectrogram_resolution: tuple, dpi: int = 100, octaves: list = None, standard_chunk: bool = False,
-                    resampling_freq: float = None, lower_bound: int = 0, upper_bound: int = 626):
+                    resampling_freq: float = None, lower_bound: int = 0, upper_bound: int = 0):
     """
     Converts sound file (source_path) to its spectrogram and save it to destination_path folder.
     Filename is the same as source sound file (but with .png extension).
@@ -38,7 +38,7 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
     """
     # Convert the dimensions from pixels to inches
     inch_x = spectrogram_resolution[0] / dpi
-    inch_y = spectrogram_resolution[1] / dpi
+    inch_y = (spectrogram_resolution[1] - upper_bound - lower_bound) / dpi
 
     # print("sample source for spectrogram\n\n\n\n", source_path, "\n\n\n\n")
     # print("inch_x\n\n\n\n", inch_x, "\n\n\n\n")
@@ -82,7 +82,7 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
     # print("frequencies\n\n\n\n", frequencies.size, "\n\n\n\n")
     # print("times\n\n\n\n", times.size, "\n\n\n\n")
     # print("spectrogram\n\n\n\n", spectrogram.size, "\n\n\n\n")
-
+    
     fig = plt.figure(frameon=False, figsize=(inch_x, inch_y))
     #fig.set_size_inches(inch_x, inch_y)  # first arg sets the width, second the height
     plot_axes = plt.Axes(fig, [0., 0., 1., 1.])
@@ -92,7 +92,7 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
     fig.add_axes(plot_axes)
     
     # Generate the plot
-    upper_bound = min(upper_bound, len(frequencies))
+    upper_bound = len(frequencies) - upper_bound
     # Slice the frequencies and spectrogram to include only the lower 500 frequency bins
     lower_frequencies = frequencies[lower_bound:upper_bound]
     lower_spectrogram = spectrogram[lower_bound:upper_bound, :]
