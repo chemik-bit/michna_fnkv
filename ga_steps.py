@@ -86,7 +86,7 @@ def generation_runfile_creator(binary_numbers_list, generation):
             img_size_index = int(binary[34:37], 2)
             img_size = img_size_options[img_size_index]
         else:
-            img_size = [79, 626]
+            img_size = [int(np.floor(1+(50000-fft_len)/(fft_len-fft_overlap))), int(np.floor(fft_len / 2 + 1))]
         balanced = True if binary[37] == "1" else False
         
         new_yaml_content = f"""
