@@ -1,5 +1,6 @@
 import random
 import shutil
+import numpy as np
 
 def clear_directories():
     directories = ['./data/results/ga', './src/cnn/configs/ga', './src/cnn/models/ga']
