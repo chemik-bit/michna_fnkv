@@ -8,7 +8,6 @@ from scipy import signal
 from scipy.io import wavfile
 import numpy as np
 import shutil
-import numpy as np
 # import cv2
 #from timeit import default_timer as timer
 try:
@@ -39,7 +38,7 @@ def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length
     """
     # Convert the dimensions from pixels to inches
     inch_x = spectrogram_resolution[0] / dpi
-    inch_y = (spectrogram_resolution[1] - upper_bound - lower_bound) / dpi
+    inch_y = max((spectrogram_resolution[1] - upper_bound - lower_bound),240) / dpi
 
     # print("sample source for spectrogram\n\n\n\n", source_path, "\n\n\n\n")
     # print("inch_x\n\n\n\n", inch_x, "\n\n\n\n")
