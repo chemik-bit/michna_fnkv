@@ -15,9 +15,9 @@ try:
 except ImportError:
     from octave_filter_bank import octave_filtering
 
-import librosa
-import librosa.display
-import IPython.display as ipd
+# import librosa
+# import librosa.display
+# import IPython.display as ipd
 
 def wav2spectrogram(source_path: Path, destination_path: Path, fft_window_length: int, fft_overlap: int,
                     spectrogram_resolution: tuple, dpi: int = 100, octaves: list = None, standard_chunk: bool = False,

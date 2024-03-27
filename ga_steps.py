@@ -83,7 +83,7 @@ def generation_runfile_creator(binary_numbers_list, generation):
             img_size_index = int(binary[33:36], 2)
             img_size = img_size_options[img_size_index]
         else:
-            img_size = (79, 626)
+            img_size = [79, 626]
         balanced = True if binary[36] == "1" else False
         
         new_yaml_content = f"""
