@@ -12,9 +12,9 @@ for generation in range(num_generations):
     
     print("GENERACE NYNI: ", generation+1, "\n\n\n\n")
     if generation == 0:
-        binary_numbers_list = generate_individual(30, 220)
+        binary_numbers_list = generate_individual(200, 220)
     else:
-        new_binary_numbers_list = generate_individual(20, 220)
+        new_binary_numbers_list = generate_individual(140, 220)
         binary_numbers_list = binary_numbers_list + new_binary_numbers_list
 
 
@@ -34,7 +34,7 @@ for generation in range(num_generations):
     
     
     
-    selected_individuals, selected_indexes = read_and_sort_results(generation, 50)
+    selected_individuals, selected_indexes = read_and_sort_results(generation, 30)
     """
     for result in selected_individuals:
         print(f"Filename: {result[0]}, Validation Accuracy: {result[1]}")
