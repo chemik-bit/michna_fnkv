@@ -139,7 +139,7 @@ def balance_by_duplication(dataset_path):
 
 def data_pipeline(wav_chunks: int, octaves: list, balanced: bool,
                   fft_len: int, fft_overlap: int, spectrogram_resolution: tuple, resampling_frequency: float,
-                  upper_bound: int = 626, lower_bound: int = 0,
+                  upper_bound: int = 0, lower_bound: int = 0,
                   **options):
     """
     Function providing the data pipelining.
@@ -352,7 +352,7 @@ def pipeline(configfile: Path, generation: int, individual, ga: bool = False):
     max_epochs = config["max_epochs"]
     learning_rate_exp = float(config["lr"])
     models = config["models"]
-    upper_bound = config.get("upper_bound", 626)
+    upper_bound = config.get("upper_bound", 0)
     lower_bound = config.get("lower_bound", 0)
     #print("models\n\n\n", models)
     binary = config["binary"] if "binary" in config else ""
